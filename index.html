@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js'></script>
+    <script src="https://unpkg.com/compromise"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>    
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5RT8DTHJRE"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-5RT8DTHJRE');
+    </script>
+   
+    <title>Testing NLP for Spatial Analysis</title>
+</head>
+<body>
+    <div class="topnav">
+        <a href="about.html">About</a>
+      </div>
+    <div class="container">
+        <div class="left-block">
+            <div class="content-left">
+                <h2 class="title">Type Your Request Or Question:</h2>
+                <div class="content-slider">
+                    <div class="slider">
+                      <div class="mask">
+                        <ul>
+                          <li class="anim1">
+                            <div class="quote">Try sentences like: "Show Hackney", "Load Lambeth" , or "Where are the parks in westminster?". </div>
+                          </li>
+                          <li class="anim2">
+                            <div class="quote">Search for schools, parks, libraries, pubs, supermarkets or graveyards in London areas (e.g., Westminster, Lewisham, Lambeth, Hackney, etc.)</div>
+                          </li>
+                          <li class="anim3">
+                            <div class="quote">Clear the map by typing "Please clear the map"</div>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+        <div class="right-block">
+            <section>
+                <input type="text" id="sentence" name="sentence">
+                <div id="map-holder">
+                    <div id="map"></div>
+                </div>
+                <p id="warning" name="warning" class="warning"></p>
+
+            </section>
+
+        </div>
+    </div>
+
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
