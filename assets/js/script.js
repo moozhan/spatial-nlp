@@ -32,7 +32,7 @@ var libraryIcon = L.icon({
 
 
 var pubIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2504/2504294.png',
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/988/988934.png',
     // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
     iconSize: [20, 20], // size of the icon
     // shadowSize: [50, 64], // size of the shadow
@@ -239,6 +239,11 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
 
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${locationToSearch}`;
         neighbourhoods = await getJson(urlToSearch);
+        var polygon = L.geoJSON(neighbourhoods, { style: { color: '#dd8855', fillOpacity: 0.5 } });
+        var bounds = polygon.getBounds();
+        // console.log(bounds);
+        map.fitBounds(bounds);
+
         console.log(neighbourhoods);
 
         var searchWithin = turf.multiPolygon(neighbourhoods.geometry.coordinates);
@@ -299,6 +304,10 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${locationToSearch}`;
 
         neighbourhoods = await getJson(urlToSearch);
+        var polygon = L.geoJSON(neighbourhoods, { style: { color: '#dd8855', fillOpacity: 0.5 } });
+        var bounds = polygon.getBounds();
+        // console.log(bounds);
+        map.fitBounds(bounds);
 
         var entityToSearch = entities[0];
         let iconForDisplay;
