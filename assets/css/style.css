@@ -10,7 +10,7 @@ html, body {
 
 .container{
     display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    grid-template-columns: 1fr 1fr;
     grid-gap: 5px; 
     /* border: 1px solid black;  */
     width: 100vw; 
@@ -362,6 +362,16 @@ section{
   }
 
   @media (max-width: 600px) {
+
+    .container{
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      grid-gap: 5px; 
+      /* border: 1px solid black;  */
+      width: 100vw; 
+      height: 100vh;
+  }
+  
     .left-block{
       margin: 5px; 
       width: 80%;
@@ -408,11 +418,5 @@ section{
   width: 80%;
   margin-top: 2em;
 }
-.container{
-  display: grid; 
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  /* grid-gap: 5px;  */
-  /* border: 1px solid black;  */
-  width: 100vw; 
-}
+
   }
