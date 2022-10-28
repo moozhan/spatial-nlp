@@ -15,7 +15,7 @@ var schoolIcon = L.icon({
     // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
     iconSize: [20, 20], // size of the icon
     // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
+    iconAnchor: [20, 20], // point of the icon which will correspond to marker's location
     shadowAnchor: [4, 62],  // the same for the shadow
     popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
 });
@@ -30,15 +30,27 @@ var libraryIcon = L.icon({
     popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
 });
 
+
+var pubIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2504/2504294.png',
+    // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
+    iconSize: [20, 20], // size of the icon
+    // shadowSize: [50, 64], // size of the shadow
+    iconAnchor: [20, 20], // point of the icon which will correspond to marker's location
+    // shadowAnchor: [4, 62],  // the same for the shadow
+    popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
+});
 var genericIcon = L.icon({
     iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Lol_circle.png/479px-Lol_circle.png',
     // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
     iconSize: [10, 10], // size of the icon
     // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
+    iconAnchor: [10, 10], // point of the icon which will correspond to marker's location
     // shadowAnchor: [4, 62],  // the same for the shadow
     popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
 });
+
+
 
 
 $('#map-holder').hide();
@@ -187,6 +199,8 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
             iconForDisplay = schoolIcon;
         } else if (from === "library") {
             iconForDisplay = libraryIcon;
+        } else if (from === "pub") {
+            iconForDisplay = pubIcon;
         } else {
             iconForDisplay = genericIcon;
         }
@@ -197,6 +211,8 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
             secondicon = schoolIcon;
         } else if (to === "library") {
             secondicon = libraryIcon;
+        } else if (from === "pub") {
+            secondicon = pubIcon;
         } else {
             secondicon = genericIcon;
         }
@@ -292,6 +308,8 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
             iconForDisplay = schoolIcon;
         } else if (entityToSearch === "library") {
             iconForDisplay = libraryIcon;
+        } else if (entityToSearch === "pub") {
+            iconForDisplay = pubIcon;
         } else {
             iconForDisplay = genericIcon;
         }
