@@ -4,7 +4,7 @@ var parkIcon = L.icon({
     // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
     iconSize: [20, 25], // size of the icon
     // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [20, 25], // point of the icon which will correspond to marker's location
+    iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
     shadowAnchor: [4, 62],  // the same for the shadow
     popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
 });
@@ -21,11 +21,11 @@ var schoolIcon = L.icon({
 });
 
 var libraryIcon = L.icon({
-    iconUrl: 'https://i.pinimg.com/originals/9e/ec/37/9eec37f0efbc0f8044645476e284e741.png',
+    iconUrl: 'https://www.freeiconspng.com/thumbs/museum-icon/museum-icon-9.png',
     // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
     iconSize: [30, 35], // size of the icon
     // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [30, 35], // point of the icon which will correspond to marker's location
+    iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
     // shadowAnchor: [4, 62],  // the same for the shadow
     popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
 });
@@ -142,7 +142,6 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
 
 
     if (boundarylength !== 0) {
-
         // document.getElementById('warning').style.display = 'none';
         let boundaryentities = boundary.nouns().out('array');
         // console.log(boundaryentities);
@@ -176,32 +175,10 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         map.invalidateSize();
         // document.getElementById('warning').style.display = 'none';
 
-        let entities = buffer.nouns().toSingular().out('array');
+        let entities = buffer.nouns().out('array');
         var from = entities[0];
         var to = entities[1];
         var locationToSearch = entities[2];
-
-        if (from === "park") {
-            iconForDisplay = parkIcon;
-        } else if (from === "school") {
-            iconForDisplay = schoolIcon;
-        } else if (from === "library") {
-            iconForDisplay = libraryIcon;
-        } else {
-            iconForDisplay = genericIcon;
-        }
-
-        if (to === "park") {
-            secondicon = parkIcon;
-        } else if (to === "school") {
-            secondicon = schoolIcon;
-        } else if (to === "library") {
-            secondicon = libraryIcon;
-        } else {
-            secondicon = genericIcon;
-        }
-
-
         toSearch = await getJson(apiUrlTwo);
         findinglist = toSearch.features;
         var pointresultfrom = [];
@@ -247,9 +224,8 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
 
 
         var bufferpolygone = [];
-        for (var i in toptsWithin) {
+        for (var i in toptsWithin)
             bufferpolygone.push(turf.buffer(pointtobuffer, 0.1, { units: 'miles' }));
-        };
         console.log(bufferpolygone);
 
         var foundpoints = [];
@@ -267,7 +243,7 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         for (var i in foundpoints) {
             if (foundpoints[i].features.length !== 0) {
                 for (var j in foundpoints[i].features) {
-                    L.marker([foundpoints[i].features[j].geometry.coordinates[1], foundpoints[i].features[j].geometry.coordinates[0]], { icon: iconForDisplay })
+                    L.marker([foundpoints[i].features[j].geometry.coordinates[1], foundpoints[i].features[j].geometry.coordinates[0]])
                         .addTo(map);
                 }
             }
@@ -281,9 +257,14 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         let entities = contain.nouns().out('array');
         var locationToSearch = entities[1];
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${locationToSearch}`;
-
+        // console.log(urlToSearch);
+        // document.querySelector("#output").innerHTML = pastTense.location;  
+        // let apiUrlTwo = `http://localhost:8080/api/collections/static/items/areas?name=${pastTense.location}`;
+        // console.log(apiUrlTwo);
         neighbourhoods = await getJson(urlToSearch);
-
+        // console.log(neighbourhoods);
+        // finding = neighbourhoods.features;
+        // var result = finding.filter(item => item.properties.LAD22NM.toLowerCase() === locationToSearch);
         var entityToSearch = entities[0];
         let iconForDisplay;
         if (entityToSearch === "park") {
@@ -297,14 +278,20 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         }
         if (entityToSearch !== null && entityToSearch !== '') {
 
+            // document.getElementById('warning').style.display = 'none';
+
             if (entityToSearch === "charger" || entityToSearch === "chargers") {
                 toSearch = await getJson(apiUrl);
+                // console.log(toSearch);
+                // console.log(toSearch.data[2].geometry.coordinates);
                 let newObject = Object.entries(toSearch).reduce((obj, item) => {
                     obj.push({
                         "coordinates": [item[1].AddressInfo.Longitude, item[1].AddressInfo.Latitude]
                     });
                     return obj;
                 }, []);
+
+                // console.log(newObject);
 
                 var pointresult = [];
                 for (var i in newObject)
@@ -334,6 +321,7 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         }
     }
     else if (bufferlength !== 0) {
+        // document.getElementById('warning').style.display = 'none';
 
         let entities = buffer.nouns().out('array');
         var from = entities[0];
@@ -356,6 +344,9 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         var pointto = turf.points(pointresultto);
         console.log(pointto);
 
+
+
+        // var distance = turf.distance(pointfrom, pointto, options);
     }
     else {
         document.getElementById('warning').style.display = 'block';
