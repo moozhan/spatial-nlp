@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
+
 html, body {
     font-family: Arial, sans-serif;
     background-image: url('../image/background.png');
@@ -13,7 +15,6 @@ html, body {
   font-size: 14px;
   padding-right: 1em;
 }
-
 
 .container{
     display: grid; 
@@ -83,13 +84,13 @@ section{
   }
 
 
-  .topnav {
+.topnav {
     background-color: transparent;
     overflow: hidden;
   }
   
   /* Style the links inside the navigation bar */
-  .topnav a {
+.topnav a {
     float: right;
     color: black;
     text-align: center;
@@ -100,23 +101,30 @@ section{
   }
   
   /* Change the color of links on hover */
-  .topnav a:hover {
+.topnav a:hover {
     background-color: rgb(247, 247, 247);
     color: black;
   }
 
-  .bold{
+.bold{
     font-weight: bold;
   }
+.info-box{
+    background-color:white; 
+    width: 80%; 
+    height: 500px; 
+    align-items: center; 
+    text-align: center; 
+    border: black dashed 2.5px;
+    margin-left: 10em;
 
-
-
-  .content-slider {
+  }
+.content-slider {
     width: 100%;
     height: 100px;
   }
   
-  .slider {
+.slider {
     text-align: right;
     align-items: right;
     height: 120px;
@@ -126,18 +134,18 @@ section{
     position: relative;
   }
   
-  .mask {
+.mask {
     overflow: hidden;
     height: 100px;
   }
   
-  .slider ul {
+.slider ul {
     margin: 0;
     padding: 0;
     position: relative;
   }
   
-  .slider li {
+.slider li {
     width: 100%;
     height: 120px;
     position: absolute;
@@ -147,14 +155,14 @@ section{
 
   }
   
-  .slider .quote {
+.slider .quote {
     font-size: 18px;
     font-style: italic;
     font-family: Arial, Helvetica, sans-serif;
     text-align: right;
   }
   
-  .slider li.anim1 {
+.slider li.anim1 {
     animation: cycle 25s linear infinite;
   }
   
@@ -364,18 +372,9 @@ section{
       opacity: 0;
       z-index: 0;
     }
+    
   }
-
-.info-box{
-  background-color:white; 
-  width: 80%; 
-  height: 500px; 
-  align-items: center; 
-  text-align: center; 
-  margin-left: 10em; 
-  border: black dashed 2.5px;
-}
-
+  
   @media (max-width: 600px) {
 
     .container{
@@ -384,8 +383,8 @@ section{
       grid-gap: 5px; 
       /* border: 1px solid black;  */
       width: 100vw; 
-      height: 100vh;
-  }
+      height: 45vh;
+    }
   
     .left-block{
       margin: 5px; 
@@ -394,53 +393,55 @@ section{
       justify-content: center;
       /* align-items: center; */
       font-family: 'Luckiest Guy', cursive;
-      height: 500px;
-  }
+      height: 200px;
+    }
   
-  .right-block{
-      /* padding-left: 1em;  */
-      display: flex;
-      /* justify-content: center; */
-      /* align-items: center; */
-      font-family: 'Luckiest Guy', cursive;
+    .right-block{
+        /* padding-left: 1em;  */
+        display: flex;
+        /* justify-content: center; */
+        /* align-items: center; */
+        font-family: 'Luckiest Guy', cursive;
+        /* transition: width 1s; */
+    }
+    .content-left{
+      width: 80%;
+      /* text-align: center; */
+      font-size: 1.5em;
       /* transition: width 1s; */
-  }
-  .content-left{
-    width: 80%;
-    /* text-align: center; */
-    font-size: 1.5em;
-    /* transition: width 1s; */
-}
-.slider {
-  /* text-align: center; */
-  /* align-items: center; */
-  height: 20px;
-  width: 100%;
-  /* margin: 10px auto 0; */
-  overflow: visible;
-  position: relative;
-}
-#sentence{
-  width: 70%;
-  height: 40px;
-  border-radius: 50px;
-  padding-left: 50px;
-  margin-top: -120px;
-}
+    }
+    .slider {
+      /* text-align: center; */
+      /* align-items: center; */
+      height: 20px;
+      width: 100%;
+      /* margin: 10px auto 0; */
+      overflow: visible;
+      position: relative;
+    }
+    #sentence{
+      width: 70%;
+      height: 40px;
+      border-radius: 50px;
+      padding-left: 50px;
+      margin-top: -120px;
+    }
 
-#map{
-  height: 500px;
-  width: 100%;
-  /* margin-top: 2em; */
-}
+    #map{
+      height: 300px;
+      width: 100%;
+      /* margin-top: 2em; */
+    }
 
-.info-box{
-  background-color:white; 
-  width: 100%; 
-  height: 300px; 
-  align-items: center; 
-  text-align: center; 
-  border: black dashed 2.5px;
-}
+    .info-box{
+      background-color:white; 
+      width: 100%; 
+      height: 100%; 
+      align-items: center; 
+      text-align: center; 
+      border: black dashed 2.5px;
+      border-bottom: 0;
+      margin-left: 0;
+    }
 
   }
