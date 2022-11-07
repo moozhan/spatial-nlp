@@ -50,16 +50,18 @@ var genericIcon = L.icon({
     popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
 });
 
-
-
-
 $('#map-holder').hide();
+
+
 //======================Loading Data============================================
 
 let jsondata = "";
 let apiUrlTwo = 'https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/semi-static/items/facilities?type=all';
 let apiUrl = "https://london-nlp-spatial.herokuapp.com/chargingpoints";
-// let apiUrlThree = "../assets/data/dataCentroids.geojson";
+let namesURL = "https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/semi-static/items/names?type=all";
+
+
+
 async function getJson(url) {
     let response = await fetch(url);
     console.log(response);
@@ -81,7 +83,17 @@ async function getLocal(url) {
     return data;
 };
 
-//=================== Map==========================================================
+//=============================== updating the NLP  =====================================================================//
+async function getit() {
+    resultName = await getJson(namesURL);
+    console.log(resultName);
+    nlp.plugin({
+        words: resultName
+    });
+}
+getit();
+
+//=================== Map===============================================================================================//
 var map = L.map('map').setView([51.505, -0.09], 13);
 
 
@@ -96,9 +108,13 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
     document.getElementById('warning').style.display = 'none';
     if (!(event.which === 13))
         return;
-    const request = await event.target.value;
+    const phrase = await event.target.value;
+    const request = phrase.toLowerCase();
+
     let doc = nlp(request);
-    // console.log(doc);
+    let test = doc.places().text();
+    console.log(test);
+
     //-- make all nouns singular - [eg. show parks in westminster to show park in westminster - might be irrelevant later!]
 
     singleDoc = doc.nouns().toSingular();
@@ -106,11 +122,14 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
 
     //-- creates a new sentence for analysis
     let analysis = nlp(requestedQuery);
-    // console.log(analysis);
+    console.log(analysis);
+
+
     //-- Load the initial place
     let boundary = analysis.match('(show|load|add) #Noun').terms();
     let boundarylength = Object.keys(boundary.ptrs).length;
     // console.log(boundary);
+    console.log(boundary);
 
     //-- Clear the map
     let clear = analysis.match('clear the map').terms();
@@ -121,15 +140,15 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
 
 
     //-- Checks if there is any combination of x in y
-    let contain = analysis.match('#Noun in #Noun').terms();
+    let contain = analysis.match('#Noun in #Place').terms();
     // console.log(contain);
     let containlength = Object.keys(contain.ptrs).length;
 
-    let containCity = analysis.match('#Noun in #Noun').terms();
+    // let containCity = analysis.match('#Noun in #Noun').terms();
     // console.log(containCity);
 
     //-- Checks if there are any combination of x close to y
-    let buffer = analysis.match('#Noun near #Noun in #Noun').terms();
+    let buffer = analysis.match('#Noun near #Noun in (#Noun|#Verb)').terms();
     let bufferlength = Object.keys(buffer.ptrs).length;
     console.log(buffer);
     // console.log(buffer);
@@ -151,39 +170,12 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         color: '#dd8855',
         fillOpacity: 0.5
     };
+    var styleTwo = {
+        color: '#ffffff',
+        fillOpacity: 0.5
+    };
 
-
-    if (boundarylength !== 0) {
-
-        // document.getElementById('warning').style.display = 'none';
-        let boundaryentities = boundary.nouns().out('array');
-        // console.log(boundaryentities);
-        $('#map-holder').show();
-        map.invalidateSize();
-
-        const areaToSearch = boundaryentities[1];
-        const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${areaToSearch}`;
-        // console.log(urlToSearch);
-        resultdata = await getJson(urlToSearch);
-        var polygon = L.geoJSON(resultdata, { style: { color: '#dd8855', fillOpacity: 0.5 } });
-        var showingmap = polygon.bindPopup(function (layer) {
-            return layer.feature.properties.officialCode;
-        }).addTo(map);
-        var bounds = polygon.getBounds();
-        // console.log(bounds);
-        map.fitBounds(bounds);
-
-    } else if (clearaltlength !== 0) {
-        map.eachLayer(function (layer) {
-            map.removeLayer(layer);
-        });
-        map.addLayer(tile);
-    } else if (clearlength !== 0) {
-        map.eachLayer(function (layer) {
-            map.removeLayer(layer);
-        });
-        map.addLayer(tile);
-    } if (bufferlength !== 0) {
+    if (bufferlength !== 0) {
         $('#map-holder').show();
         map.invalidateSize();
         // document.getElementById('warning').style.display = 'none';
@@ -191,7 +183,6 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         let entities = buffer.nouns().toSingular().out('array');
         var from = entities[0];
         var to = entities[1];
-        var locationToSearch = entities[2];
 
         if (from === "park") {
             iconForDisplay = parkIcon;
@@ -217,7 +208,6 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
             secondicon = genericIcon;
         }
 
-
         toSearch = await getJson(apiUrlTwo);
         findinglist = toSearch.features;
         var pointresultfrom = [];
@@ -235,9 +225,7 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         var pointto = turf.points(pointresultto);
         console.log(pointto);
 
-
-
-        const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${locationToSearch}`;
+        const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${test}`;
         neighbourhoods = await getJson(urlToSearch);
         var polygon = L.geoJSON(neighbourhoods, { style: { color: '#dd8855', fillOpacity: 0.5 } });
         var bounds = polygon.getBounds();
@@ -279,7 +267,7 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
             var polygonewithin = turf.polygon(bufferpolygone[0].features[i].geometry.coordinates);
             findpoints = turf.pointsWithinPolygon(pointtobesearchedfrom, polygonewithin);
             foundpoints.push(findpoints);
-            L.geoJSON(bufferpolygone[0].features[i], { style: { color: '#dd8855', fillOpacity: 0.5 } }).addTo(map);
+            L.geoJSON(bufferpolygone[0].features[i], { style: { color: '#ffffff', fillOpacity: 0.5, stroke: "#555555" } }).addTo(map);
         };
 
         console.log(foundpoints);
@@ -300,11 +288,12 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         map.invalidateSize();
 
         let entities = contain.nouns().out('array');
-        var locationToSearch = entities[1];
-        const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${locationToSearch}`;
+        // var locationToSearch = entities[1];
+
+        const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${test}`;
 
         neighbourhoods = await getJson(urlToSearch);
-        var polygon = L.geoJSON(neighbourhoods, { style: { color: '#dd8855', fillOpacity: 0.5 } });
+        var polygon = L.geoJSON(neighbourhoods, { style: { color: '#ffffff', fillOpacity: 0.5 } });
         var bounds = polygon.getBounds();
         // console.log(bounds);
         map.fitBounds(bounds);
@@ -340,7 +329,6 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
 
             }
             else {
-
                 toSearch = await getJson(apiUrlTwo);
                 findingTwo = toSearch.features;
                 var resultTwo = findingTwo.filter(item => item.properties.fclass === entityToSearch);
@@ -359,34 +347,37 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
                     .bindPopup("Placeholder for any information necessary")
                     .addTo(map);
         }
-    }
-    else if (bufferlength !== 0) {
+    } else if (boundarylength !== 0) {
 
-        let entities = buffer.nouns().out('array');
-        var from = entities[0];
-        var to = entities[1];
-        console.log(entities);
-        toSearch = await getJson(apiUrlTwo);
-        findinglist = toSearch.features;
-        var pointresultfrom = [];
-        var pointresultto = [];
-        var resultfrom = findinglist.filter(item => item.properties.fclass === from);
-        var resultto = findinglist.filter(item => item.properties.fclass === to);
+        $('#map-holder').show();
+        map.invalidateSize();
 
-        for (var i in resultfrom)
-            pointresultfrom.push(resultfrom[i].geometry.coordinates);
-        var pointfrom = turf.points(pointresultfrom);
-        console.log(pointfrom);
+        // const areaToSearch = boundaryentities[1];
+        const areaToSearch = test;
+        const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${areaToSearch}`;
+        console.log(urlToSearch);
+        resultdata = await getJson(urlToSearch);
+        var polygon = L.geoJSON(resultdata, { style: { color: '#dd8855', fillOpacity: 0.3 } });
+        var showingmap = polygon.bindPopup(function (layer) {
+            return layer.feature.properties.officialCode;
+        }).addTo(map);
+        var bounds = polygon.getBounds();
+        // console.log(bounds);
+        map.fitBounds(bounds);
 
-        for (var i in resultto)
-            pointresultto.push(resultto[i].geometry.coordinates);
-        var pointto = turf.points(pointresultto);
-        console.log(pointto);
-
-    }
-    else {
+    } else if (clearaltlength !== 0) {
+        map.eachLayer(function (layer) {
+            map.removeLayer(layer);
+        });
+        map.addLayer(tile);
+    } else if (clearlength !== 0) {
+        map.eachLayer(function (layer) {
+            map.removeLayer(layer);
+        });
+        map.addLayer(tile);
+    } else {
         document.getElementById('warning').style.display = 'block';
-        document.querySelector("#warning").innerHTML = "we are not advanced enough to process this :(";
+        // document.querySelector("#warning").innerHTML = "we are not advanced enough to process this :(";
     };
 
 });

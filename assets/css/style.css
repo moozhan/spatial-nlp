@@ -7,6 +7,13 @@ html, body {
     width: 100vw;
     overflow-x: hidden;
 }
+.text-explanation {
+  text-align: left; 
+  padding-left: 1em; 
+  font-size: 14px;
+  padding-right: 1em;
+}
+
 
 .container{
     display: grid; 
@@ -14,7 +21,6 @@ html, body {
     grid-gap: 5px; 
     /* border: 1px solid black;  */
     width: 100vw; 
-    height: 100vh;
 }
 
 .left-block{
@@ -50,9 +56,8 @@ html, body {
 }
 
 #map{
-    height: 400px;
-    width: 65%;
-    margin-top: 2em;
+    height: 500px;
+    width: 100%;
 }
 
 section{
@@ -123,7 +128,7 @@ section{
   
   .mask {
     overflow: hidden;
-    height: 120px;
+    height: 100px;
   }
   
   .slider ul {
@@ -186,27 +191,27 @@ section{
       z-index: 0;
     }
     20% {
-      top: 325px;
+      top: 225px;
       opacity: 0;
       z-index: 0;
     }
     21% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: -1;
     }
     50% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: -1;
     }
     92% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: 0;
     }
     96% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     100% {
@@ -217,11 +222,11 @@ section{
   
   @keyframes cycle2 {
     0% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     16% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     20% {
@@ -238,17 +243,17 @@ section{
       z-index: 0;
     }
     40% {
-      top: 325px;
+      top: 225px;
       opacity: 0;
       z-index: 0;
     }
     41% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: -1;
     }
     100% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: -1;
     }
@@ -256,11 +261,11 @@ section{
   
   @keyframes cycle3 {
     0% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     36% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     40% {
@@ -277,17 +282,17 @@ section{
       z-index: 0;
     }
     60% {
-      top: 325px;
+      top: 225px;
       opacity: 0;
       z-index: 0;
     }
     61% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: -1;
     }
     100% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: -1;
     }
@@ -295,11 +300,11 @@ section{
   
   @keyframes cycle4 {
     0% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     56% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     60% {
@@ -316,17 +321,17 @@ section{
       z-index: 0;
     }
     80% {
-      top: 325px;
+      top: 225px;
       opacity: 0;
       z-index: 0;
     }
     81% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: -1;
     }
     100% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
       z-index: -1;
     }
@@ -334,11 +339,11 @@ section{
   
   @keyframes cycle5 {
     0% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     76% {
-      top: -325px;
+      top: -225px;
       opacity: 0;
     }
     80% {
@@ -355,11 +360,21 @@ section{
       z-index: 0;
     }
     100% {
-      top: 325px;
+      top: 225px;
       opacity: 0;
       z-index: 0;
     }
   }
+
+.info-box{
+  background-color:white; 
+  width: 80%; 
+  height: 500px; 
+  align-items: center; 
+  text-align: center; 
+  margin-left: 10em; 
+  border: black dashed 2.5px;
+}
 
   @media (max-width: 600px) {
 
@@ -414,9 +429,18 @@ section{
 }
 
 #map{
-  height: 400px;
-  width: 80%;
-  margin-top: 2em;
+  height: 500px;
+  width: 100%;
+  /* margin-top: 2em; */
+}
+
+.info-box{
+  background-color:white; 
+  width: 100%; 
+  height: 300px; 
+  align-items: center; 
+  text-align: center; 
+  border: black dashed 2.5px;
 }
 
   }
