@@ -383,7 +383,7 @@ section{
       grid-gap: 5px; 
       /* border: 1px solid black;  */
       width: 100vw; 
-      height: 45vh;
+      height: 60vh;
     }
   
     .left-block{
@@ -393,7 +393,7 @@ section{
       justify-content: center;
       /* align-items: center; */
       font-family: 'Luckiest Guy', cursive;
-      height: 300px;
+      height: 50vh;
     }
   
     .right-block{
