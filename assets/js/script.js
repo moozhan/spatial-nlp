@@ -1,59 +1,66 @@
-// ======================= all the markers =======================================
+// All setup for the map
+
 var parkIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
-    // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
-    iconSize: [20, 25], // size of the icon
-    // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [20, 25], // point of the icon which will correspond to marker's location
-    shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
+    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
+    iconSize: [20, 25],
+    shadowSize: [0, 0],
+    iconAnchor: [20, 25],
+    shadowAnchor: [4, 62],
+    popupAnchor: [-3, -3]
 });
-
 
 var schoolIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/2799/2799142.png',
-    // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
-    iconSize: [20, 20], // size of the icon
-    // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [20, 20], // point of the icon which will correspond to marker's location
-    shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
+    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
+    iconSize: [20, 20],
+    shadowSize: [0, 0],
+    iconAnchor: [20, 20],
+    shadowAnchor: [4, 62],
+    popupAnchor: [-3, -3]
 });
 
 var libraryIcon = L.icon({
     iconUrl: 'https://i.pinimg.com/originals/9e/ec/37/9eec37f0efbc0f8044645476e284e741.png',
-    // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
-    iconSize: [30, 35], // size of the icon
-    // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [30, 35], // point of the icon which will correspond to marker's location
-    // shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
+    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
+    iconSize: [30, 35],
+    shadowSize: [0, 0],
+    iconAnchor: [30, 35],
+    shadowAnchor: [4, 62],
+    popupAnchor: [-3, -3]
 });
-
 
 var pubIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/988/988934.png',
-    // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
-    iconSize: [20, 20], // size of the icon
-    // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [20, 20], // point of the icon which will correspond to marker's location
-    // shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
+    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
+    iconSize: [20, 20],
+    shadowSize: [0, 0],
+    iconAnchor: [20, 20],
+    shadowAnchor: [4, 62],
+    popupAnchor: [-3, -3]
 });
 var genericIcon = L.icon({
     iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Lol_circle.png/479px-Lol_circle.png',
-    // shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png'
-    iconSize: [10, 10], // size of the icon
-    // shadowSize: [50, 64], // size of the shadow
-    iconAnchor: [10, 10], // point of the icon which will correspond to marker's location
-    // shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor: [-3, -3] // point from which the popup should open relative to the iconAnchor
+    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
+    iconSize: [10, 10],
+    shadowSize: [0, 0],
+    iconAnchor: [10, 10],
+    shadowAnchor: [4, 62],
+    popupAnchor: [-3, -3]
 });
+
+//// Load map
+var map = L.map('map').setView([51.505, -0.09], 13);
+var tile = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
 
 $('#map-holder').hide();
 
 
-//======================Loading Data============================================
+
+//// URLS to pass to API & Fetch Function
 
 let jsondata = "";
 let apiUrlTwo = 'https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/semi-static/items/facilities?type=all';
@@ -72,18 +79,7 @@ async function getJson(url) {
     return data;
 };
 
-
-async function getLocal(url) {
-    let response = await fetch(url);
-    console.log(response);
-    if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
-    }
-    let data = await response.json();
-    return data;
-};
-
-//=============================== updating the NLP  =====================================================================//
+//// Get all the names and extend the NLP to identify them as place name
 async function getit() {
     resultName = await getJson(namesURL);
     console.log(resultName);
@@ -93,30 +89,46 @@ async function getit() {
 }
 getit();
 
-//=================== Map===============================================================================================//
-var map = L.map('map').setView([51.505, -0.09], 13);
+// Setup for getting the NLP query
+
+const input = document.querySelector("[name= 'sentence']");
+var mic = document.getElementById('mic');
+var speak = document.getElementById('speak');
+var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+var recognition = new SpeechRecognition();
 
 
-var tile = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
-// var marker = L.marker([51.49587915832181, -0.12010633935158943]).addTo(map);
+speak.addEventListener('click', function () {
+    recognition.start();
+    mic.className = "fa-solid fa-microphone";
+});
+recognition.onresult = async function (e) {
+    recognition.stop();
+    mic.className = "fa-solid fa-microphone-slash";
+    var transcript = e.results[0][0].transcript;
+    input.value = transcript;
+    mapcreation();
+};
 
-// ============================= Natural Language Processing===========================
 document.querySelector("[name= 'sentence']").addEventListener("keyup", async event => {
     document.getElementById('warning').style.display = 'none';
     if (!(event.which === 13))
         return;
     const phrase = await event.target.value;
-    const request = phrase.toLowerCase();
+    input.value = phrase;
+    mapcreation();
+});
 
-    let doc = nlp(request);
+
+// All the NLP processing and map creation
+
+async function mapcreation() {
+    let requestedquery = input.value;
+    let refinedquery = requestedquery.toLowerCase();
+    let doc = nlp(refinedquery);
     let test = doc.places().text();
-    console.log(test);
 
     //-- make all nouns singular - [eg. show parks in westminster to show park in westminster - might be irrelevant later!]
-
     singleDoc = doc.nouns().toSingular();
     let requestedQuery = singleDoc.text();
 
@@ -141,44 +153,26 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
 
     //-- Checks if there is any combination of x in y
     let contain = analysis.match('#Noun in #Place').terms();
-    // console.log(contain);
     let containlength = Object.keys(contain.ptrs).length;
-
-    // let containCity = analysis.match('#Noun in #Noun').terms();
-    // console.log(containCity);
 
     //-- Checks if there are any combination of x close to y
     let buffer = analysis.match('#Noun near #Noun in (#Noun|#Verb)').terms();
     let bufferlength = Object.keys(buffer.ptrs).length;
     console.log(buffer);
-    // console.log(buffer);
 
     let add = analysis.match('add #Noun').terms();
     let addlength = Object.keys(add.ptrs).length;
-    // console.log(add);
 
     let color = analysis.match('color it #Noun').terms();
     let colorlenght = Object.keys(color.document).length;
-    // console.log(color);
 
     //-- nearest x to y
     let nearest = doc.match('(closest|nearest) #Noun to #Noun').terms();
     let nearestlength = Object.keys(nearest.ptrs).length;
 
-    // ========================== map styles ==============================//
-    var style = {
-        color: '#dd8855',
-        fillOpacity: 0.5
-    };
-    var styleTwo = {
-        color: '#ffffff',
-        fillOpacity: 0.5
-    };
-
     if (bufferlength !== 0) {
         $('#map-holder').show();
         map.invalidateSize();
-        // document.getElementById('warning').style.display = 'none';
 
         let entities = buffer.nouns().toSingular().out('array');
         var from = entities[0];
@@ -218,28 +212,20 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         for (var i in resultfrom)
             pointresultfrom.push(resultfrom[i].geometry.coordinates);
         var pointfrom = turf.points(pointresultfrom);
-        console.log(pointfrom);
 
         for (var i in resultto)
             pointresultto.push(resultto[i].geometry.coordinates);
         var pointto = turf.points(pointresultto);
-        console.log(pointto);
 
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${test}`;
         neighbourhoods = await getJson(urlToSearch);
         var polygon = L.geoJSON(neighbourhoods, { style: { color: '#dd8855', fillOpacity: 0.5 } });
         var bounds = polygon.getBounds();
-        // console.log(bounds);
         map.fitBounds(bounds);
-
-        console.log(neighbourhoods);
 
         var searchWithin = turf.multiPolygon(neighbourhoods.geometry.coordinates);
         var fromptsWithin = turf.pointsWithinPolygon(pointfrom, searchWithin);
         var toptsWithin = turf.pointsWithinPolygon(pointto, searchWithin);
-
-        console.log(fromptsWithin);
-        console.log(toptsWithin.features[1].geometry.coordinates);
 
         var pointsforbuffer = [];
         for (var i in toptsWithin.features)
@@ -259,19 +245,14 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         for (var i in toptsWithin) {
             bufferpolygone.push(turf.buffer(pointtobuffer, 0.1, { units: 'miles' }));
         };
-        console.log(bufferpolygone);
 
         var foundpoints = [];
-
         for (var i in bufferpolygone[0].features) {
             var polygonewithin = turf.polygon(bufferpolygone[0].features[i].geometry.coordinates);
             findpoints = turf.pointsWithinPolygon(pointtobesearchedfrom, polygonewithin);
             foundpoints.push(findpoints);
             L.geoJSON(bufferpolygone[0].features[i], { style: { color: '#ffffff', fillOpacity: 0.5, stroke: "#555555" } }).addTo(map);
         };
-
-        console.log(foundpoints);
-
 
         for (var i in foundpoints) {
             if (foundpoints[i].features.length !== 0) {
@@ -288,14 +269,11 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         map.invalidateSize();
 
         let entities = contain.nouns().out('array');
-        // var locationToSearch = entities[1];
-
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${test}`;
 
         neighbourhoods = await getJson(urlToSearch);
         var polygon = L.geoJSON(neighbourhoods, { style: { color: '#ffffff', fillOpacity: 0.5 } });
         var bounds = polygon.getBounds();
-        // console.log(bounds);
         map.fitBounds(bounds);
 
         var entityToSearch = entities[0];
@@ -362,7 +340,6 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
             return layer.feature.properties.officialCode;
         }).addTo(map);
         var bounds = polygon.getBounds();
-        // console.log(bounds);
         map.fitBounds(bounds);
 
     } else if (clearaltlength !== 0) {
@@ -377,7 +354,6 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
         map.addLayer(tile);
     } else {
         document.getElementById('warning').style.display = 'block';
-        // document.querySelector("#warning").innerHTML = "we are not advanced enough to process this :(";
     };
 
-});
+};

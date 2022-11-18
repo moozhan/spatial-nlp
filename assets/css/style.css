@@ -16,6 +16,15 @@ html, body {
   padding-right: 1em;
 }
 
+.btn {
+  background-color: transparent;
+  border: none;
+  color: black;
+  padding: 12px 16px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
 .container{
     display: grid; 
     grid-template-columns: 1fr 1fr;
