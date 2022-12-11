@@ -1,64 +1,7 @@
-// All setup for the map
 
-var parkIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
-    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
-    iconSize: [20, 25],
-    shadowSize: [0, 0],
-    iconAnchor: [20, 25],
-    shadowAnchor: [4, 62],
-    popupAnchor: [-3, -3]
-});
 
-var schoolIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2799/2799142.png',
-    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
-    iconSize: [20, 20],
-    shadowSize: [0, 0],
-    iconAnchor: [20, 20],
-    shadowAnchor: [4, 62],
-    popupAnchor: [-3, -3]
-});
-
-var libraryIcon = L.icon({
-    iconUrl: 'https://i.pinimg.com/originals/9e/ec/37/9eec37f0efbc0f8044645476e284e741.png',
-    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
-    iconSize: [30, 35],
-    shadowSize: [0, 0],
-    iconAnchor: [30, 35],
-    shadowAnchor: [4, 62],
-    popupAnchor: [-3, -3]
-});
-
-var pubIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/988/988934.png',
-    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
-    iconSize: [20, 20],
-    shadowSize: [0, 0],
-    iconAnchor: [20, 20],
-    shadowAnchor: [4, 62],
-    popupAnchor: [-3, -3]
-});
-var genericIcon = L.icon({
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Lol_circle.png/479px-Lol_circle.png',
-    shadowUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
-    iconSize: [10, 10],
-    shadowSize: [0, 0],
-    iconAnchor: [10, 10],
-    shadowAnchor: [4, 62],
-    popupAnchor: [-3, -3]
-});
-
-//// Load map
-var map = L.map('map').setView([51.505, -0.09], 13);
-var tile = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
 
 $('#map-holder').hide();
-
-
 
 //// URLS to pass to API & Fetch Function
 
@@ -71,7 +14,7 @@ let namesURL = "https://london-nlp-spatial.herokuapp.com/api/v1/search/collectio
 
 async function getJson(url) {
     let response = await fetch(url);
-    console.log(response);
+    // console.log(response);
     if (!response.ok) {
         throw new Error(`HTTP error ${response.status}`);
     }
@@ -82,7 +25,7 @@ async function getJson(url) {
 //// Get all the names and extend the NLP to identify them as place name
 async function getit() {
     resultName = await getJson(namesURL);
-    console.log(resultName);
+    // console.log(resultName);
     nlp.plugin({
         words: resultName
     });
@@ -134,14 +77,14 @@ async function mapcreation() {
 
     //-- creates a new sentence for analysis
     let analysis = nlp(requestedQuery);
-    console.log(analysis);
+    // console.log(analysis);
 
 
     //-- Load the initial place
     let boundary = analysis.match('(show|load|add) #Noun').terms();
     let boundarylength = Object.keys(boundary.ptrs).length;
     // console.log(boundary);
-    console.log(boundary);
+    // console.log(boundary);
 
     //-- Clear the map
     let clear = analysis.match('clear the map').terms();
@@ -153,18 +96,27 @@ async function mapcreation() {
 
     //-- Checks if there is any combination of x in y
     let contain = analysis.match('#Noun in #Place').terms();
+    let beforeContain = contain.lookBehind('#Noun').out('array');
     let containlength = Object.keys(contain.ptrs).length;
 
     //-- Checks if there are any combination of x close to y
     let buffer = analysis.match('#Noun near #Noun in (#Noun|#Verb)').terms();
+    let beforeBuffer = contain.lookBehind('#Noun').out('array');
     let bufferlength = Object.keys(buffer.ptrs).length;
-    console.log(buffer);
+    // console.log(beforeBuffer);
+
+
+    // let farness = analysis.match('#Noun far from #Noun in (#Noun|#Verb)').terms();
+    // let farnesslength = Object.keys(farness.ptrs).length;
+    // console.log(farness);
+
+    // let customdist = analysis.match('#Noun #Value #Unit (of|from) #Noun').terms();
+    // let customdistlength = Object.keys(customdist.ptrs).length;
+    // console.log(customdist);
+
 
     let add = analysis.match('add #Noun').terms();
     let addlength = Object.keys(add.ptrs).length;
-
-    let color = analysis.match('color it #Noun').terms();
-    let colorlenght = Object.keys(color.document).length;
 
     //-- nearest x to y
     let nearest = doc.match('(closest|nearest) #Noun to #Noun').terms();
@@ -175,20 +127,15 @@ async function mapcreation() {
         map.invalidateSize();
 
         let entities = buffer.nouns().toSingular().out('array');
-        var from = entities[0];
-        var to = entities[1];
-
-        if (from === "park") {
-            iconForDisplay = parkIcon;
-        } else if (from === "school") {
-            iconForDisplay = schoolIcon;
-        } else if (from === "library") {
-            iconForDisplay = libraryIcon;
-        } else if (from === "pub") {
-            iconForDisplay = pubIcon;
-        } else {
-            iconForDisplay = genericIcon;
+        // console.log(entities);
+        let allEntities = [];
+        for (i in beforeBuffer) {
+            let clean = beforeBuffer[i].replace(',', '');
+            allEntities.push(clean);
         }
+        allEntities.push(entities[0]);
+
+        var to = entities[1];
 
         if (to === "park") {
             secondicon = parkIcon;
@@ -202,128 +149,140 @@ async function mapcreation() {
             secondicon = genericIcon;
         }
 
-        toSearch = await getJson(apiUrlTwo);
-        findinglist = toSearch.features;
-        var pointresultfrom = [];
-        var pointresultto = [];
-        var resultfrom = findinglist.filter(item => item.properties.fclass === from);
-        var resultto = findinglist.filter(item => item.properties.fclass === to);
-
-        for (var i in resultfrom)
-            pointresultfrom.push(resultfrom[i].geometry.coordinates);
-        var pointfrom = turf.points(pointresultfrom);
-
-        for (var i in resultto)
-            pointresultto.push(resultto[i].geometry.coordinates);
-        var pointto = turf.points(pointresultto);
 
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${test}`;
         neighbourhoods = await getJson(urlToSearch);
         var polygon = L.geoJSON(neighbourhoods, { style: { color: '#dd8855', fillOpacity: 0.5 } });
         var bounds = polygon.getBounds();
         map.fitBounds(bounds);
-
         var searchWithin = turf.multiPolygon(neighbourhoods.geometry.coordinates);
-        var fromptsWithin = turf.pointsWithinPolygon(pointfrom, searchWithin);
+
+        var pointresultto = [];
+
+        toSearch = await getJson(apiUrlTwo);
+        findinglist = toSearch.features;
+
+
+
+        var resultto = findinglist.filter(item => item.properties.fclass === to);
+        for (var i in resultto)
+            pointresultto.push(resultto[i].geometry.coordinates);
+        var pointto = turf.points(pointresultto);
         var toptsWithin = turf.pointsWithinPolygon(pointto, searchWithin);
 
         var pointsforbuffer = [];
         for (var i in toptsWithin.features)
             pointsforbuffer.push(toptsWithin.features[i].geometry.coordinates);
         var pointtobuffer = turf.points(pointsforbuffer);
-
-        var pointsforsearch = [];
-        for (var i in fromptsWithin.features) {
-            pointsforsearch.push(fromptsWithin.features[i].geometry.coordinates);
-            // L.marker([fromptsWithin.features[i].geometry.coordinates[1], fromptsWithin.features[i].geometry.coordinates[0]])
-            //     .addTo(map);
-        };
-        var pointtobesearchedfrom = turf.points(pointsforsearch);
-
-
         var bufferpolygone = [];
         for (var i in toptsWithin) {
             bufferpolygone.push(turf.buffer(pointtobuffer, 0.1, { units: 'miles' }));
         };
-
-        var foundpoints = [];
         for (var i in bufferpolygone[0].features) {
-            var polygonewithin = turf.polygon(bufferpolygone[0].features[i].geometry.coordinates);
-            findpoints = turf.pointsWithinPolygon(pointtobesearchedfrom, polygonewithin);
-            foundpoints.push(findpoints);
-            L.geoJSON(bufferpolygone[0].features[i], { style: { color: '#ffffff', fillOpacity: 0.5, stroke: "#555555" } }).addTo(map);
+            L.geoJSON(bufferpolygone[0].features[i], { style: { color: '#ffffff', fillOpacity: 0.1, stroke: "#555555" } }).addTo(map);
         };
 
-        for (var i in foundpoints) {
-            if (foundpoints[i].features.length !== 0) {
-                for (var j in foundpoints[i].features) {
-                    L.marker([foundpoints[i].features[j].geometry.coordinates[1], foundpoints[i].features[j].geometry.coordinates[0]], { icon: iconForDisplay })
-                        .addTo(map);
-                }
+        for (i in allEntities) {
+            if (allEntities[i] === "park") {
+                iconForDisplay = parkIcon;
+            } else if (allEntities[i] === "school") {
+                iconForDisplay = schoolIcon;
+            } else if (allEntities[i] === "library") {
+                iconForDisplay = libraryIcon;
+            } else if (allEntities[i] === "pub") {
+                iconForDisplay = pubIcon;
+            } else {
+                iconForDisplay = genericIcon;
             }
+            var pointresultfrom = [];
 
+            var resultfrom = findinglist.filter(item => item.properties.fclass === allEntities[i]);
+            for (var i in resultfrom)
+                pointresultfrom.push(resultfrom[i].geometry.coordinates);
+            var pointfrom = turf.points(pointresultfrom);
+
+            var fromptsWithin = turf.pointsWithinPolygon(pointfrom, searchWithin);
+
+            var pointsforsearch = [];
+            for (var i in fromptsWithin.features) {
+                pointsforsearch.push(fromptsWithin.features[i].geometry.coordinates);
+                // L.marker([fromptsWithin.features[i].geometry.coordinates[1], fromptsWithin.features[i].geometry.coordinates[0]])
+                //     .addTo(map);
+            };
+            var pointtobesearchedfrom = turf.points(pointsforsearch);
+
+            var foundpoints = [];
+            for (var i in bufferpolygone[0].features) {
+                var polygonewithin = turf.polygon(bufferpolygone[0].features[i].geometry.coordinates);
+                findpoints = turf.pointsWithinPolygon(pointtobesearchedfrom, polygonewithin);
+                foundpoints.push(findpoints);
+            };
+
+            for (var i in foundpoints) {
+                if (foundpoints[i].features.length !== 0) {
+                    for (var j in foundpoints[i].features) {
+                        L.marker([foundpoints[i].features[j].geometry.coordinates[1], foundpoints[i].features[j].geometry.coordinates[0]], { icon: iconForDisplay })
+                            .addTo(map);
+                    }
+                }
+
+            }
         }
-
     } else if (containlength !== 0) {
         $('#map-holder').show();
         map.invalidateSize();
 
         let entities = contain.nouns().out('array');
+        let allentities = [];
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${test}`;
 
         neighbourhoods = await getJson(urlToSearch);
         var polygon = L.geoJSON(neighbourhoods, { style: { color: '#ffffff', fillOpacity: 0.5 } });
         var bounds = polygon.getBounds();
         map.fitBounds(bounds);
-
-        var entityToSearch = entities[0];
-        let iconForDisplay;
-        if (entityToSearch === "park") {
-            iconForDisplay = parkIcon;
-        } else if (entityToSearch === "school") {
-            iconForDisplay = schoolIcon;
-        } else if (entityToSearch === "library") {
-            iconForDisplay = libraryIcon;
-        } else if (entityToSearch === "pub") {
-            iconForDisplay = pubIcon;
-        } else {
-            iconForDisplay = genericIcon;
+        for (i in beforeContain) {
+            let clean = beforeContain[i].replace(',', '');
+            allentities.push(clean);
         }
-        if (entityToSearch !== null && entityToSearch !== '') {
+        allentities.push(entities[0]);
+        // console.log(allentities);
 
-            if (entityToSearch === "charger" || entityToSearch === "chargers") {
-                toSearch = await getJson(apiUrl);
-                let newObject = Object.entries(toSearch).reduce((obj, item) => {
-                    obj.push({
-                        "coordinates": [item[1].AddressInfo.Longitude, item[1].AddressInfo.Latitude]
-                    });
-                    return obj;
-                }, []);
+        let iconForDisplay;
 
-                var pointresult = [];
-                for (var i in newObject)
-                    pointresult.push(newObject[i].coordinates);
-                var points = turf.points(pointresult);
+        if (allentities !== null && allentities !== '') {
 
-            }
-            else {
-                toSearch = await getJson(apiUrlTwo);
-                findingTwo = toSearch.features;
-                var resultTwo = findingTwo.filter(item => item.properties.fclass === entityToSearch);
+            toSearch = await getJson(apiUrlTwo);
+            findingTwo = toSearch.features;
+            for (k = 0; k < allentities.length; k++) {
+                if (allentities[k] === "park") {
+                    iconForDisplay = parkIcon;
+                } else if (allentities[k] === "school") {
+                    iconForDisplay = schoolIcon;
+                } else if (allentities[k] === "library") {
+                    iconForDisplay = libraryIcon;
+                } else if (allentities[k] === "pub") {
+                    iconForDisplay = pubIcon;
+                } else {
+                    iconForDisplay = genericIcon;
+                }
+                var checking = findingTwo.filter(item => item.properties.fclass === allentities[k]);
                 var pointresultTwo = [];
-                for (var i in resultTwo)
-                    pointresultTwo.push(resultTwo[i].geometry.coordinates);
+                for (var i in checking)
+                    pointresultTwo.push(checking[i].geometry.coordinates);
                 var points = turf.points(pointresultTwo);
 
+
+                var searchWithin = turf.multiPolygon(neighbourhoods.geometry.coordinates);
+                var ptsWithin = turf.pointsWithinPolygon(points, searchWithin);
+                // console.log(ptsWithin);
+
+                // console.log(ptsWithin);
+                for (var i in ptsWithin.features)
+                    L.marker([ptsWithin.features[i].geometry.coordinates[1], ptsWithin.features[i].geometry.coordinates[0]], { icon: iconForDisplay })
+                        // .bindPopup(allentities[k])
+                        .addTo(map);
             }
 
-            var searchWithin = turf.multiPolygon(neighbourhoods.geometry.coordinates);
-            var ptsWithin = turf.pointsWithinPolygon(points, searchWithin);
-            // console.log(ptsWithin);
-            for (var i in ptsWithin.features)
-                L.marker([ptsWithin.features[i].geometry.coordinates[1], ptsWithin.features[i].geometry.coordinates[0]], { icon: iconForDisplay })
-                    .bindPopup("Placeholder for any information necessary")
-                    .addTo(map);
         }
     } else if (boundarylength !== 0) {
 
