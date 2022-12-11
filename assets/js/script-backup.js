@@ -1,7 +1,22 @@
+//// Load map
+var map = L.map('map').setView([51.505, -0.09], 13);
+var tile = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+
 
 $('#map-holder').hide();
 
-//// function to get data from urls
+//// URLS to pass to API & Fetch Function
+
+let jsondata = "";
+let apiUrlTwo = 'https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/semi-static/items/facilities?type=all';
+let apiUrl = "https://london-nlp-spatial.herokuapp.com/chargingpoints";
+let namesURL = "https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/semi-static/items/names?type=all";
+
+
 
 async function getJson(url) {
     let response = await fetch(url);
@@ -23,7 +38,8 @@ async function getit() {
 }
 getit();
 
-// Setup for receiving the NLP query
+// Setup for getting the NLP query
+
 const input = document.querySelector("[name= 'sentence']");
 var mic = document.getElementById('mic');
 var speak = document.getElementById('speak');
@@ -52,12 +68,6 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
     mapcreation();
 });
 
-let featurestomap = [];
-
-map.on('pm:create', e => {
-    featurestomap.push(e);
-});
-
 
 // All the NLP processing and map creation
 
@@ -79,9 +89,8 @@ async function mapcreation() {
     //-- Load the initial place
     let boundary = analysis.match('(show|load|add) #Noun').terms();
     let boundarylength = Object.keys(boundary.ptrs).length;
-
-    let drawingmap = doc.match('(start|show) the map').terms();
-    let drawingmaplength = Object.keys(drawingmap.ptrs).length;
+    // console.log(boundary);
+    // console.log(boundary);
 
     //-- Clear the map
     let clear = analysis.match('clear the map').terms();
@@ -91,31 +100,29 @@ async function mapcreation() {
     let clearaltlength = Object.keys(clearalt.ptrs).length;
 
 
-
     //-- Checks if there is any combination of x in y
     let contain = analysis.match('#Noun in #Place').terms();
     let beforeContain = contain.lookBehind('#Noun').out('array');
     let containlength = Object.keys(contain.ptrs).length;
 
-
-    let containCustom = analysis.match('#Noun in my (boundary|area)').terms(); 7
-    let beforecontainCustom = containCustom.lookBehind('#Noun').out('array');
-    let containCustomlength = Object.keys(containCustom.ptrs).length;
-
-
     //-- Checks if there are any combination of x close to y
-    let buffer = analysis.match('#Noun near #Noun in #Place').terms();
+    let buffer = analysis.match('#Noun near #Noun in (#Noun|#Verb)').terms();
     let beforeBuffer = contain.lookBehind('#Noun').out('array');
     let bufferlength = Object.keys(buffer.ptrs).length;
-    console.log(buffer);
-
-    //-- Checks if there are any combination of x close to y
-    let bufferCustom = analysis.match('#Noun near #Noun in my (boundary|area)').terms();
-    let beforebufferCustom = bufferCustom.lookBehind('#Noun').out('array');
-    let bufferCustomlength = Object.keys(bufferCustom.ptrs).length;
-    console.log(bufferCustom);
     // console.log(beforeBuffer);
 
+
+    // let farness = analysis.match('#Noun far from #Noun in (#Noun|#Verb)').terms();
+    // let farnesslength = Object.keys(farness.ptrs).length;
+    // console.log(farness);
+
+    // let customdist = analysis.match('#Noun #Value #Unit (of|from) #Noun').terms();
+    // let customdistlength = Object.keys(customdist.ptrs).length;
+    // console.log(customdist);
+
+
+    let add = analysis.match('add #Noun').terms();
+    let addlength = Object.keys(add.ptrs).length;
 
     //-- nearest x to y
     let nearest = doc.match('(closest|nearest) #Noun to #Noun').terms();
@@ -147,6 +154,7 @@ async function mapcreation() {
         } else {
             secondicon = genericIcon;
         }
+
 
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${test}`;
         neighbourhoods = await getJson(urlToSearch);
@@ -226,124 +234,6 @@ async function mapcreation() {
 
             }
         }
-    } else if (drawingmaplength !== 0) {
-
-        $('#map-holder').show();
-        map.invalidateSize();
-
-    } else if (bufferCustomlength !== 0) {
-        console.log("hi");
-        let entities = bufferCustom.nouns().toSingular().out('array');
-        // console.log(entities);
-        let allEntities = [];
-        for (i in beforebufferCustom) {
-            let clean = beforebufferCustom[i].replace(',', '');
-            allEntities.push(clean);
-        }
-        allEntities.push(entities[0]);
-
-        var to = entities[1];
-
-        if (to === "park") {
-            secondicon = parkIcon;
-        } else if (to === "school") {
-            secondicon = schoolIcon;
-        } else if (to === "library") {
-            secondicon = libraryIcon;
-        } else if (to === "pub") {
-            secondicon = pubIcon;
-        } else {
-            secondicon = genericIcon;
-        }
-
-        let geometrycoord = [];
-        let finalgeo = [];
-        for (i in featurestomap[0].layer._latlngs[0]) {
-            let coord = [];
-            coord.push(featurestomap[0].layer._latlngs[0][i].lng);
-            coord.push(featurestomap[0].layer._latlngs[0][i].lat);
-            geometrycoord.push(coord);
-        }
-
-        let finalpoints = [];
-        finalpoints.push(featurestomap[0].layer._latlngs[0][0].lng);
-        finalpoints.push(featurestomap[0].layer._latlngs[0][0].lat);
-        geometrycoord.push(finalpoints);
-        finalgeo.push(geometrycoord);
-        console.log(finalgeo);
-
-        var searchWithin = turf.polygon(finalgeo);
-
-        var pointresultto = [];
-
-        toSearch = await getJson(apiUrlTwo);
-        findinglist = toSearch.features;
-
-        var resultto = findinglist.filter(item => item.properties.fclass === to);
-        for (var i in resultto)
-            pointresultto.push(resultto[i].geometry.coordinates);
-        var pointto = turf.points(pointresultto);
-        var toptsWithin = turf.pointsWithinPolygon(pointto, searchWithin);
-
-        var pointsforbuffer = [];
-        for (var i in toptsWithin.features)
-            pointsforbuffer.push(toptsWithin.features[i].geometry.coordinates);
-        var pointtobuffer = turf.points(pointsforbuffer);
-        var bufferpolygone = [];
-        for (var i in toptsWithin) {
-            bufferpolygone.push(turf.buffer(pointtobuffer, 0.1, { units: 'miles' }));
-        };
-        for (var i in bufferpolygone[0].features) {
-            L.geoJSON(bufferpolygone[0].features[i], { style: { color: '#ffffff', fillOpacity: 0.1, stroke: "#555555" } }).addTo(map);
-        };
-
-        for (i in allEntities) {
-            if (allEntities[i] === "park") {
-                iconForDisplay = parkIcon;
-            } else if (allEntities[i] === "school") {
-                iconForDisplay = schoolIcon;
-            } else if (allEntities[i] === "library") {
-                iconForDisplay = libraryIcon;
-            } else if (allEntities[i] === "pub") {
-                iconForDisplay = pubIcon;
-            } else {
-                iconForDisplay = genericIcon;
-            }
-            var pointresultfrom = [];
-
-            var resultfrom = findinglist.filter(item => item.properties.fclass === allEntities[i]);
-            for (var i in resultfrom)
-                pointresultfrom.push(resultfrom[i].geometry.coordinates);
-            var pointfrom = turf.points(pointresultfrom);
-
-            var fromptsWithin = turf.pointsWithinPolygon(pointfrom, searchWithin);
-
-            var pointsforsearch = [];
-            for (var i in fromptsWithin.features) {
-                pointsforsearch.push(fromptsWithin.features[i].geometry.coordinates);
-                // L.marker([fromptsWithin.features[i].geometry.coordinates[1], fromptsWithin.features[i].geometry.coordinates[0]])
-                //     .addTo(map);
-            };
-            var pointtobesearchedfrom = turf.points(pointsforsearch);
-
-            var foundpoints = [];
-            for (var i in bufferpolygone[0].features) {
-                var polygonewithin = turf.polygon(bufferpolygone[0].features[i].geometry.coordinates);
-                findpoints = turf.pointsWithinPolygon(pointtobesearchedfrom, polygonewithin);
-                foundpoints.push(findpoints);
-            };
-
-            for (var i in foundpoints) {
-                if (foundpoints[i].features.length !== 0) {
-                    for (var j in foundpoints[i].features) {
-                        L.marker([foundpoints[i].features[j].geometry.coordinates[1], foundpoints[i].features[j].geometry.coordinates[0]], { icon: iconForDisplay })
-                            .addTo(map);
-                    }
-                }
-
-            }
-        }
-
     } else if (containlength !== 0) {
         $('#map-holder').show();
         map.invalidateSize();
@@ -387,9 +277,12 @@ async function mapcreation() {
                     pointresultTwo.push(checking[i].geometry.coordinates);
                 var points = turf.points(pointresultTwo);
 
+
                 var searchWithin = turf.multiPolygon(neighbourhoods.geometry.coordinates);
                 var ptsWithin = turf.pointsWithinPolygon(points, searchWithin);
+                // console.log(ptsWithin);
 
+                // console.log(ptsWithin);
                 for (var i in ptsWithin.features)
                     L.marker([ptsWithin.features[i].geometry.coordinates[1], ptsWithin.features[i].geometry.coordinates[0]], { icon: iconForDisplay })
                         // .bindPopup(allentities[k])
@@ -397,71 +290,7 @@ async function mapcreation() {
             }
 
         }
-    } else if (containCustomlength !== 0) {
-
-        $('#map-holder').show();
-        map.invalidateSize();
-
-        let allentities = [];
-        let getnoun = containCustom.nouns().out('array');
-        let entitiestosearch = getnoun[0];
-
-        for (i in beforecontainCustom) {
-            let clean = beforecontainCustom[i].replace(',', '');
-            allentities.push(clean);
-        }
-        allentities.push(entitiestosearch);
-        let geometrycoord = [];
-        let finalgeo = [];
-        for (i in featurestomap[0].layer._latlngs[0]) {
-            let coord = [];
-            coord.push(featurestomap[0].layer._latlngs[0][i].lng);
-            coord.push(featurestomap[0].layer._latlngs[0][i].lat);
-            geometrycoord.push(coord);
-        }
-
-        let finalpoints = [];
-        finalpoints.push(featurestomap[0].layer._latlngs[0][0].lng);
-        finalpoints.push(featurestomap[0].layer._latlngs[0][0].lat);
-        geometrycoord.push(finalpoints);
-        finalgeo.push(geometrycoord);
-        console.log(finalgeo);
-
-
-        if (allentities !== null && allentities !== '') {
-
-            toSearch = await getJson(apiUrlTwo);
-            findingTwo = toSearch.features;
-            for (k = 0; k < allentities.length; k++) {
-                if (allentities[k] === "park") {
-                    iconForDisplay = parkIcon;
-                } else if (allentities[k] === "school") {
-                    iconForDisplay = schoolIcon;
-                } else if (allentities[k] === "library") {
-                    iconForDisplay = libraryIcon;
-                } else if (allentities[k] === "pub") {
-                    iconForDisplay = pubIcon;
-                } else {
-                    iconForDisplay = genericIcon;
-                }
-                var checking = findingTwo.filter(item => item.properties.fclass === allentities[k]);
-                var pointresultTwo = [];
-                for (var i in checking)
-                    pointresultTwo.push(checking[i].geometry.coordinates);
-                var points = turf.points(pointresultTwo);
-
-                var searchWithin = turf.polygon(finalgeo);
-                var ptsWithin = turf.pointsWithinPolygon(points, searchWithin);
-
-                for (var i in ptsWithin.features)
-                    L.marker([ptsWithin.features[i].geometry.coordinates[1], ptsWithin.features[i].geometry.coordinates[0]], { icon: iconForDisplay })
-                        .addTo(map);
-            }
-
-        }
-    }
-
-    else if (boundarylength !== 0) {
+    } else if (boundarylength !== 0) {
 
         $('#map-holder').show();
         map.invalidateSize();
