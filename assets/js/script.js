@@ -59,14 +59,14 @@ let markerstoMap = [];
 map.on('pm:create', e => {
     map.pm.disableDraw('Marker');
 
-    console.log(e);
+    // console.log(e);
     if (e.shape === "Polygon" || e.shape === "Rectangle") {
         featurestomap.push(e);
     } else if (e.shape === "Marker") {
         markerstoMap.push(e);
     }
 });
-console.log(markerstoMap);
+// console.log(markerstoMap);
 
 // All the NLP processing and map creation
 
@@ -77,7 +77,7 @@ async function mapcreation() {
     let refinedquery = requestedquery.toLowerCase();
     let doc = nlp(refinedquery);
     let test = doc.places().text();
-    console.log(doc);
+    // console.log(doc);
     //-- make all nouns singular - [eg. show parks in westminster to show park in westminster - might be irrelevant later!]
     singleDoc = doc.nouns().toSingular();
     let requestedQuery = singleDoc.text();
@@ -97,7 +97,7 @@ async function mapcreation() {
     //-- Clear the map
     let clear = doc.match('clear the map').terms();
     let clearlength = Object.keys(clear.ptrs).length;
-    console.log(clear);
+    // console.log(clear);
 
     let clearalt = analysis.match('remove all the layers').terms();
     let clearaltlength = Object.keys(clearalt.ptrs).length;
@@ -124,7 +124,7 @@ async function mapcreation() {
     let bufferCustom = analysis.match('#Noun near #Noun in my (boundary|area)').terms();
     let beforebufferCustom = bufferCustom.lookBehind('#Noun').out('array');
     let bufferCustomlength = Object.keys(bufferCustom.ptrs).length;
-    console.log(beforebufferCustom);
+    // console.log(beforebufferCustom);
 
     //-- nearest x to y
     let nearestCustom = doc.match('(to|near) my (point|marker)').lookBehind('#Superlative').growRight('#Noun').out('array');
@@ -148,7 +148,7 @@ async function mapcreation() {
 
         toSearch = await getJson(apiUrlTwo);
         listToSearch = toSearch.features;
-        console.log(listToSearch);
+        // console.log(listToSearch);
 
         //get the boundary for analysis
 
@@ -161,7 +161,7 @@ async function mapcreation() {
 
             var pointofcentre = turf.point(coordMyPoint);
             var buffered = turf.buffer(pointofcentre, 1, { units: 'miles' });
-            console.log(buffered);
+            // console.log(buffered);
             // L.geoJSON(buffered).addTo(map);
             var searchWithin = turf.polygon(buffered.geometry.coordinates);
 
@@ -197,10 +197,10 @@ async function mapcreation() {
                         var distance = turf.distance(pointofcentre, to, options);
                         varDistances.push(distance);
                     }
-                    console.log(varDistances);
+                    // console.log(varDistances);
                     const min = Math.min(...varDistances);
                     var getthepoition = jQuery.inArray(min, varDistances);
-                    console.log(ptsWithin.features[getthepoition]);
+                    // console.log(ptsWithin.features[getthepoition]);
                     L.marker([ptsWithin.features[getthepoition].geometry.coordinates[1], ptsWithin.features[getthepoition].geometry.coordinates[0]], { icon: iconForDisplay }).addTo(map);
                 } else if (adjective === "furthest") {
                     let varDistances = [];
@@ -402,7 +402,7 @@ async function mapcreation() {
         finalpoints.push(featurestomap[0].layer._latlngs[0][0].lat);
         geometrycoord.push(finalpoints);
         finalgeo.push(geometrycoord);
-        console.log(finalgeo);
+        // console.log(finalgeo);
 
         var searchWithin = turf.polygon(finalgeo);
 
@@ -557,7 +557,7 @@ async function mapcreation() {
         finalpoints.push(featurestomap[0].layer._latlngs[0][0].lat);
         geometrycoord.push(finalpoints);
         finalgeo.push(geometrycoord);
-        console.log(finalgeo);
+        // console.log(finalgeo);
 
 
         if (allentities !== null && allentities !== '') {
@@ -601,7 +601,7 @@ async function mapcreation() {
         // const areaToSearch = boundaryentities[1];
         const areaToSearch = test;
         const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${areaToSearch}`;
-        console.log(urlToSearch);
+        // console.log(urlToSearch);
         resultdata = await getJson(urlToSearch);
         var polygon = L.geoJSON(resultdata, { style: { color: '#dd8855', fillOpacity: 0.3 } });
         var showingmap = polygon.bindPopup(function (layer) {
@@ -615,11 +615,15 @@ async function mapcreation() {
             map.removeLayer(layer);
         });
         map.addLayer(tile);
+        featurestomap = [];
+        markerstoMap = [];
     } else if (clearlength !== 0) {
         map.eachLayer(function (layer) {
             map.removeLayer(layer);
         });
         map.addLayer(tile);
+        featurestomap = [];
+        markerstoMap = [];
     } else {
         document.getElementById('warning').style.display = 'block';
     };
