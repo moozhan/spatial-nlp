@@ -23,6 +23,7 @@ async function getit() {
 }
 getit();
 
+
 // Setup for receiving the NLP query
 const input = document.querySelector("[name= 'sentence']");
 var mic = document.getElementById('mic');
@@ -53,20 +54,30 @@ document.querySelector("[name= 'sentence']").addEventListener("keyup", async eve
 });
 
 let featurestomap = [];
+let markerstoMap = [];
 
 map.on('pm:create', e => {
-    featurestomap.push(e);
-});
+    map.pm.disableDraw('Marker');
 
+    console.log(e);
+    if (e.shape === "Polygon" || e.shape === "Rectangle") {
+        featurestomap.push(e);
+    } else if (e.shape === "Marker") {
+        markerstoMap.push(e);
+    }
+});
+console.log(markerstoMap);
 
 // All the NLP processing and map creation
 
 async function mapcreation() {
+    document.getElementById('warningofquery').innerHTML = "";
+
     let requestedquery = input.value;
     let refinedquery = requestedquery.toLowerCase();
     let doc = nlp(refinedquery);
     let test = doc.places().text();
-
+    console.log(doc);
     //-- make all nouns singular - [eg. show parks in westminster to show park in westminster - might be irrelevant later!]
     singleDoc = doc.nouns().toSingular();
     let requestedQuery = singleDoc.text();
@@ -84,8 +95,9 @@ async function mapcreation() {
     let drawingmaplength = Object.keys(drawingmap.ptrs).length;
 
     //-- Clear the map
-    let clear = analysis.match('clear the map').terms();
+    let clear = doc.match('clear the map').terms();
     let clearlength = Object.keys(clear.ptrs).length;
+    console.log(clear);
 
     let clearalt = analysis.match('remove all the layers').terms();
     let clearaltlength = Object.keys(clearalt.ptrs).length;
@@ -98,7 +110,7 @@ async function mapcreation() {
     let containlength = Object.keys(contain.ptrs).length;
 
 
-    let containCustom = analysis.match('#Noun in my (boundary|area)').terms(); 7
+    let containCustom = analysis.match('#Noun in my (boundary|area)').terms();
     let beforecontainCustom = containCustom.lookBehind('#Noun').out('array');
     let containCustomlength = Object.keys(containCustom.ptrs).length;
 
@@ -107,21 +119,149 @@ async function mapcreation() {
     let buffer = analysis.match('#Noun near #Noun in #Place').terms();
     let beforeBuffer = contain.lookBehind('#Noun').out('array');
     let bufferlength = Object.keys(buffer.ptrs).length;
-    console.log(buffer);
 
     //-- Checks if there are any combination of x close to y
     let bufferCustom = analysis.match('#Noun near #Noun in my (boundary|area)').terms();
     let beforebufferCustom = bufferCustom.lookBehind('#Noun').out('array');
     let bufferCustomlength = Object.keys(bufferCustom.ptrs).length;
-    console.log(bufferCustom);
-    // console.log(beforeBuffer);
-
+    console.log(beforebufferCustom);
 
     //-- nearest x to y
-    let nearest = doc.match('(closest|nearest) #Noun to #Noun').terms();
-    let nearestlength = Object.keys(nearest.ptrs).length;
+    let nearestCustom = doc.match('(to|near) my (point|marker)').lookBehind('#Superlative').growRight('#Noun').out('array');
+    theArray = [];
+    myArray = [];
+    for (let i = 0; i < nearestCustom.length; i++) {
+        theArray = nearestCustom[i].split(" ");
+        myArray.push(theArray);
+    }
+    myArraylength = myArray.length;
 
-    if (bufferlength !== 0) {
+
+    //Turn the parts to spatial queries
+    if (drawingmaplength !== 0) {
+
+        $('#map-holder').show();
+        map.invalidateSize();
+
+
+    } else if (myArraylength !== 0) {
+
+        toSearch = await getJson(apiUrlTwo);
+        listToSearch = toSearch.features;
+        console.log(listToSearch);
+
+        //get the boundary for analysis
+
+
+        if (markerstoMap.length !== 0) {
+            let mypoint = markerstoMap[0].layer;
+            let coordMyPoint = [];
+            coordMyPoint.push(mypoint._latlng.lng);
+            coordMyPoint.push(mypoint._latlng.lat);
+
+            var pointofcentre = turf.point(coordMyPoint);
+            var buffered = turf.buffer(pointofcentre, 1, { units: 'miles' });
+            console.log(buffered);
+            // L.geoJSON(buffered).addTo(map);
+            var searchWithin = turf.polygon(buffered.geometry.coordinates);
+
+
+            for (let j = 0; j < myArray.length; j++) {
+                const entities = myArray[j][1];
+                const adjective = myArray[j][0];
+                if (entities === "park") {
+                    iconForDisplay = parkIcon;
+                } else if (entities === "school") {
+                    iconForDisplay = schoolIcon;
+                } else if (entities === "library") {
+                    iconForDisplay = libraryIcon;
+                } else if (entities === "pub") {
+                    iconForDisplay = pubIcon;
+                } else {
+                    iconForDisplay = genericIcon;
+                }
+
+                const checking = listToSearch.filter(item => item.properties.fclass === entities);
+                var pointresultTwo = [];
+
+                for (var i in checking)
+                    pointresultTwo.push(checking[i].geometry.coordinates);
+                var points = turf.points(pointresultTwo);
+                if (adjective === "closest" || adjective === "nearest") {
+                    var ptsWithin = turf.pointsWithinPolygon(points, searchWithin);
+                    let varDistances = [];
+                    for (i in ptsWithin.features) {
+                        var to = turf.point(ptsWithin.features[i].geometry.coordinates);
+                        var options = { units: 'miles' };
+
+                        var distance = turf.distance(pointofcentre, to, options);
+                        varDistances.push(distance);
+                    }
+                    console.log(varDistances);
+                    const min = Math.min(...varDistances);
+                    var getthepoition = jQuery.inArray(min, varDistances);
+                    console.log(ptsWithin.features[getthepoition]);
+                    L.marker([ptsWithin.features[getthepoition].geometry.coordinates[1], ptsWithin.features[getthepoition].geometry.coordinates[0]], { icon: iconForDisplay }).addTo(map);
+                } else if (adjective === "furthest") {
+                    let varDistances = [];
+                    if (test !== null && test !== '') {
+                        const urlToSearch = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${test}`;
+                        neighbourhoods = await getJson(urlToSearch);
+                        var polygon = L.geoJSON(neighbourhoods, { style: { color: '#ffffff', fillOpacity: 0.5 } });
+                        var bounds = polygon.getBounds();
+                        map.fitBounds(bounds);
+                        var searchWithin = turf.multiPolygon(neighbourhoods.geometry.coordinates);
+                        var ptsWithin = turf.pointsWithinPolygon(points, searchWithin);
+                        for (i in ptsWithin.features) {
+                            var to = turf.point(ptsWithin.features[i].geometry.coordinates);
+                            var options = { units: 'miles' };
+
+                            var distance = turf.distance(pointofcentre, to, options);
+                            varDistances.push(distance);
+                        }
+                        const max = Math.max(...varDistances);
+                        var getthepoition = jQuery.inArray(max, varDistances);
+                        L.marker([ptsWithin.features[getthepoition].geometry.coordinates[1], ptsWithin.features[getthepoition].geometry.coordinates[0]], { icon: iconForDisplay }).addTo(map);
+                    } else if (featurestomap.length !== 0) {
+                        let geometrycoord = [];
+                        let finalgeo = [];
+                        for (i in featurestomap[0].layer._latlngs[0]) {
+                            let coord = [];
+                            coord.push(featurestomap[0].layer._latlngs[0][i].lng);
+                            coord.push(featurestomap[0].layer._latlngs[0][i].lat);
+                            geometrycoord.push(coord);
+                        }
+
+                        let finalpoints = [];
+                        finalpoints.push(featurestomap[0].layer._latlngs[0][0].lng);
+                        finalpoints.push(featurestomap[0].layer._latlngs[0][0].lat);
+                        geometrycoord.push(finalpoints);
+                        finalgeo.push(geometrycoord);
+
+                        var searchWithin = turf.polygon(finalgeo);
+                        var ptsWithin = turf.pointsWithinPolygon(points, searchWithin);
+                        for (i in ptsWithin.features) {
+                            var to = turf.point(ptsWithin.features[i].geometry.coordinates);
+                            var options = { units: 'miles' };
+
+                            var distance = turf.distance(pointofcentre, to, options);
+                            varDistances.push(distance);
+                        }
+                        const max = Math.max(...varDistances);
+                        var getthepoition = jQuery.inArray(max, varDistances);
+                        L.marker([ptsWithin.features[getthepoition].geometry.coordinates[1], ptsWithin.features[getthepoition].geometry.coordinates[0]], { icon: iconForDisplay }).addTo(map);
+                    } else {
+                        document.getElementById('warningofquery').innerHTML = "you need to specify the boundary for finding furthest point. E.g., show the furthest school to my point within Westminster or find the furthest park in Hackney to my point. ";
+                    }
+
+                }
+            }
+
+        } else {
+            document.getElementById('warningofquery').innerHTML = "There doesn't seem to be any point on the map. If you haven't start the map, enter [show the map] and add a marker. Then enter your query again.";
+        }
+
+    } else if (bufferlength !== 0) {
         $('#map-holder').show();
         map.invalidateSize();
 
@@ -159,8 +299,6 @@ async function mapcreation() {
 
         toSearch = await getJson(apiUrlTwo);
         findinglist = toSearch.features;
-
-
 
         var resultto = findinglist.filter(item => item.properties.fclass === to);
         for (var i in resultto)
@@ -226,13 +364,7 @@ async function mapcreation() {
 
             }
         }
-    } else if (drawingmaplength !== 0) {
-
-        $('#map-holder').show();
-        map.invalidateSize();
-
     } else if (bufferCustomlength !== 0) {
-        console.log("hi");
         let entities = bufferCustom.nouns().toSingular().out('array');
         // console.log(entities);
         let allEntities = [];

@@ -66,7 +66,7 @@ html, body {
 }
 
 #map{
-    height: 500px;
+    height: 550px;
     width: 100%;
 }
 
@@ -90,6 +90,9 @@ section{
 
 .warning{
     color: rgb(162, 23, 23);
+    font-family: Arial, Helvetica, sans-serif;
+    width: 60%;
+
   }
 
 
@@ -121,7 +124,7 @@ section{
 .info-box{
     background-color:white; 
     width: 80%; 
-    height: 500px; 
+    height: 550px; 
     align-items: center; 
     text-align: center; 
     border: black dashed 2.5px;

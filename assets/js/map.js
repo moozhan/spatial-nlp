@@ -1,4 +1,13 @@
 // All setup for the map
+var defaultIcon = L.icon({
+    iconUrl: 'https://pic.onlinewebfonts.com/svg/img_415813.png',
+    shadowUrl: 'https://pic.onlinewebfonts.com/svg/img_415813.png',
+    iconSize: [20, 25],
+    shadowSize: [0, 0],
+    iconAnchor: [20, 25],
+    shadowAnchor: [4, 62],
+    popupAnchor: [-3, -3]
+});
 
 var parkIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/896/896059.png',
@@ -56,13 +65,23 @@ var tile = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
+var customMarker = L.Icon.extend({
+    options: {
+        shadowUrl: null,
+        iconAnchor: new L.Point(12, 12),
+        iconSize: new L.Point(24, 24),
+        iconUrl: 'https://pic.onlinewebfonts.com/svg/img_415813.png'
+    }
+});
+
+
 // add leaflet.pm controls with some options to the map
 map.pm.addControls({
     position: 'topleft',
     drawCircle: false,
-    drawMarker: false,
+    // drawMarker: { cursorMarker: true },
     drawPolyline: false,
     drawCircleMarker: false
-
 });
+
 
