@@ -84,4 +84,41 @@ map.pm.addControls({
     drawCircleMarker: false
 });
 
+let customPolygon = [];
+let markerstoMap = [];
 
+map.on('pm:create', e => {
+    map.pm.disableDraw('Marker');
+
+    // console.log(e);
+    if (e.shape === "Polygon" || e.shape === "Rectangle") {
+        let geometrycoord = [];
+        let finalCoords = [];
+        for (i in e.layer._latlngs[0]) {
+            let coordinates = []
+            coordinates.push(e.layer._latlngs[0][i].lng);
+            coordinates.push(e.layer._latlngs[0][i].lat)
+            geometrycoord.push(coordinates);
+        }
+        let finalpoints = [];
+        finalpoints.push(e.layer._latlngs[0][0].lng);
+        finalpoints.push(e.layer._latlngs[0][0].lat);
+        geometrycoord.push(finalpoints);
+        finalCoords.push(geometrycoord);
+
+
+        let feature = {
+            type: "Feature",
+            properties: {},
+            geometry: {
+                type: "Polygon",
+                coordinates: finalCoords
+            }
+        }
+
+        customPolygon.push(feature);
+    } else if (e.shape === "Marker") {
+        markerstoMap.push(e);
+    }
+});
+// console.log(markerstoMap);
