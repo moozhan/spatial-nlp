@@ -109,8 +109,7 @@ function checkCustomProximity(p) {
 
 
 function checkContain(p) {
-    let contain = p.match('in #Place').terms();
-    let place = contain.places().text();
+    let contain = p.match('in (#Place|them|it|there)').terms();
     let beforeContain = contain.lookBehind('#Noun').nouns().toSingular().out('array');
     if (Object.keys(contain.ptrs).length !== 0) {
         if (beforeContain.length !== 0) {
@@ -118,7 +117,6 @@ function checkContain(p) {
                 message: "successful",
                 value: {
                     entities: beforeContain,
-                    area: place
                 }
             }
             return result;
@@ -195,7 +193,7 @@ function checkLoadBoundary(p) {
             let result = {
                 message: "successful",
                 value: {
-                    boundaries: boundaries
+                    boundaries: 1
                 }
             }
             return result;
@@ -289,9 +287,35 @@ function findPlaces(p) {
 
 // ---------------------- All the Spatial Analysis Functions -----------------------------//
 
+async function getPlaceGeo(x) {
+    const geoBoundary = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${x}`;
+    let place = await getJson(geoBoundary);
+    return place;
+}
+
+async function findFeaturesWithinArea(feature, area) {
+    let features = await getFeature(feature);
+    var pointresultTwo = [];
+    for (var i in features)
+        pointresultTwo.push(features[i].geometry.coordinates);
+    var points = turf.points(pointresultTwo);
+    var ptsWithin = turf.pointsWithinPolygon(points, area);
+    return ptsWithin;
+}
+
+async function showBoundaryArea(x) {
+    var polygon = L.geoJSON(x, { style: { color: '#dd8855', fillOpacity: 0.3 } });
+    polygon.bindPopup(function (layer) {
+        return layer.feature.properties.officialCode;
+    }).addTo(map);
+    var bounds = polygon.getBounds();
+    map.fitBounds(bounds);
+}
+
+
 async function getPlaceBoundary(x) {
     const geoBoundary = `https://london-nlp-spatial.herokuapp.com/api/v1/search/collections/static/items/areas?name=${x}`;
-    place = await getJson(geoBoundary);
+    let place = await getJson(geoBoundary);
     var polygon = L.geoJSON(place, { style: { color: '#dd8855', fillOpacity: 0.5 } });
     var bounds = polygon.getBounds();
     map.fitBounds(bounds);
@@ -301,9 +325,9 @@ async function getPlaceBoundary(x) {
 async function showBoundary(x) {
     $('#map-holder').show();
     map.invalidateSize();
-    resultdata = await getPlaceBoundary(x);
+    resultdata = await getPlaceGeo(x);
     var polygon = L.geoJSON(resultdata, { style: { color: '#dd8855', fillOpacity: 0.3 } });
-    var showingmap = polygon.bindPopup(function (layer) {
+    polygon.bindPopup(function (layer) {
         return layer.feature.properties.officialCode;
     }).addTo(map);
     var bounds = polygon.getBounds();
@@ -418,11 +442,66 @@ async function findMultiFeaturesWithin(featureArray, area) {
 // ------------------------- Visualizing the outcome --------------------------------------//
 async function analyzethetext() {
     let requestedquery = input.value;
-    let cleaned = requestedquery.replace(',', '').toLowerCase();;
-    let doc = nlp(cleaned);
-    let sentences = doc.fullSentences().out('array');
+    let cleaned = requestedquery.split('.').join(' ').toLowerCase();
+    let cleanedCl = cleaned.replace(',', ' and');
+    let docCl = nlp(cleanedCl);
+    let placeNames = docCl.places().out('array');
+    const unique = (value, index, self) => {
+        return self.indexOf(value) === index
+    }
+    const uniquePlaces = placeNames.filter(unique);
+    let placePool = [];
+    for (i in uniquePlaces) {
+        let geo = await getPlaceGeo(uniquePlaces[i]);
+        placePool.push(geo);
+    }
+
+    let doc = nlp(requestedquery);
+    let sentences = doc.json().map(o => o.text);
+    let allSentences = [];
+    let allLocations = []
+    for (i in sentences) {
+        var sent = sentences[i].split('.').join(' ').toLowerCase();
+        var sentCl = sent.replace(',', ' and');
+        let cleansent = nlp(sentCl);
+        var loci = cleansent.places().out('array');
+        allSentences.push(sent);
+        allLocations.push(loci);
+    }
+
+    // ----------- find location for all sentences --------//
+    let loc = [];
+    for (i in sentences) {
+        let locInSent = allLocations[i];
+        if (locInSent.length !== 0) {
+            loc.push(allLocations[i]);
+        } else {
+            let j = i - 1;
+            for (j; j < sentences.length && j > -1; j--) {
+                let check = allLocations[j].length;
+                if (check !== 0) {
+                    loc.push(allLocations[j]);
+                    j = -100;
+                } else {
+                    console.log("still not there");
+
+                }
+            }
+        }
+    };
+    // console.log(loc);
+    // console.log(sentences);
+
+
+    // --------------------- finding all the processes -----------------------//
     for (i in sentences) {
         let analysis = nlp(sentences[i]);
+        let sentLoc = loc[i]; // This is an array of locations.
+        let locGeo = []
+        for (i in sentLoc) {
+            var result = placePool.filter(item => item.properties.name.toLowerCase() === sentLoc[i]);
+            locGeo.push(result);
+        }
 
         let firstcheck = checkLoadMap(analysis);
         if (firstcheck.value !== 0) {
@@ -440,7 +519,7 @@ async function analyzethetext() {
                         bufferpolygons.push(turf.buffer(baseFeatures, 0.1, { units: 'miles' }));
                     };
                 } else {
-                    console.log("we can't seem to find the place to look for entities");
+                    // console.log("we can't seem to find the place to look for entities");
                 };
                 for (var i in bufferpolygons[0].features) {
                     L.geoJSON(bufferpolygons[0].features[i], { style: { color: '#ffffff', fillOpacity: 0.1, stroke: "#555555" } }).addTo(map);
@@ -460,7 +539,7 @@ async function analyzethetext() {
                     for (v in finalpoints) {
                         showSinglePoint(finalpoints[v], entitiestolook[i]);
                     }
-                    console.log(finalpoints);
+                    // console.log(finalpoints);
                 }
             } else {
                 let proximityResult = checkProximity(analysis);
@@ -469,28 +548,44 @@ async function analyzethetext() {
                     if (proximityResult.value.area !== null) {
                         $('#map-holder').show();
                         map.invalidateSize();
-                        let baseFeatures = await findFeaturesWithin(proximityResult.value.from, proximityResult.value.area);
-                        for (var i in baseFeatures) {
-                            bufferpolygons.push(turf.buffer(baseFeatures, 0.1, { units: 'miles' }));
+                        let baseFeatures = [];
+                        for (l in locGeo) {
+                            let baseFeature = await findFeaturesWithinArea(proximityResult.value.from, locGeo[l][0]);
+                            baseFeatures.push(baseFeature);
+                        }
+
+                        for (i in baseFeatures) {
+                            for (j in baseFeatures[i].features) {
+                                bufferpolygons.push(turf.buffer(baseFeatures[i].features[j], 0.1, { units: 'miles' }));
+                            }
                         };
                     } else {
-                        console.log("we can't seem to find the place to look for entities");
+                        // console.log("we can't seem to find the place to look for entities");
                     };
-                    for (var i in bufferpolygons[0].features) {
-                        L.geoJSON(bufferpolygons[0].features[i], { style: { color: '#ffffff', fillOpacity: 0.1, stroke: "#555555" } }).addTo(map);
+                    for (var i in bufferpolygons) {
+                        L.geoJSON(bufferpolygons[i], { style: { color: '#ffffff', fillOpacity: 0.1, stroke: "#555555" } }).addTo(map);
                     };
                     let entitiestolook = proximityResult.value.entities;
                     for (i in entitiestolook) {
                         let finalpoints = [];
-                        let results = await findFeaturesWithin(entitiestolook[i], proximityResult.value.area);
-                        for (j in bufferpolygons[0].features) {
-                            findpoints = turf.pointsWithinPolygon(results, bufferpolygons[0].features[j]);
-                            if (findpoints.features.length !== 0) {
-                                for (r in findpoints.features) {
-                                    finalpoints.push(findpoints.features[r]);
+                        let results = [];
+                        for (l in locGeo) {
+                            let result = await findFeaturesWithinArea(entitiestolook[i], locGeo[l][0]);
+                            results.push(result);
+                        }
+                        for (j in bufferpolygons) {
+                            for (v in results) {
+                                for (t in results[v].features) {
+                                    findpoints = turf.pointsWithinPolygon(results[v].features[t], bufferpolygons[j]);
+                                    if (findpoints.features.length !== 0) {
+                                        for (r in findpoints.features) {
+                                            finalpoints.push(findpoints.features[r]);
+                                        }
+                                    }
                                 }
                             }
                         }
+
                         for (v in finalpoints) {
                             showSinglePoint(finalpoints[v], entitiestolook[i]);
                         }
@@ -513,15 +608,19 @@ async function analyzethetext() {
                             map.invalidateSize();
                             // let constResults = await findMultiFeaturesWithin(containResult.value.entities, containResult.value.area);
                             for (i in containResult.value.entities) {
-                                let contresults = await findFeaturesWithin(containResult.value.entities[i], containResult.value.area);
-                                showMultiplePoints(contresults, containResult.value.entities[i]);
+                                for (j in sentLoc) {
+                                    let contresults = await findFeaturesWithinArea(containResult.value.entities[i], locGeo[j][0]);
+                                    showMultiplePoints(contresults, containResult.value.entities[i]);
+                                }
                             }
                         }
                         else {
                             let loadMap = checkLoadBoundary(analysis);
-                            if (loadMap.value !== 0) {
-                                for (i in loadMap.value.boundaries) {
-                                    showBoundary(loadMap.value.boundaries[i]);
+                            if (loadMap.value.boundaries == 1) {
+                                $('#map-holder').show();
+                                map.invalidateSize();
+                                for (i in locGeo) {
+                                    showBoundaryArea(locGeo[i][0]);
                                 }
                             }
                             else {
@@ -533,10 +632,10 @@ async function analyzethetext() {
                                     map.addLayer(tile);
                                     featurestomap = [];
                                     markerstoMap = [];
-
                                 }
                                 else {
-                                    console.log("cannot match it with anything");
+                                    document.getElementById('warning').style.display = "block";
+                                    document.getElementById('warning').innerHTML = "Your request doesn't seem to have any spatial element or we are not advanced enough to be able to respond to it.";
                                 }
 
                             }
