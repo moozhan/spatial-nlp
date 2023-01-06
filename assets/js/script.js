@@ -632,6 +632,7 @@ async function analyzethetext() {
                                     map.addLayer(tile);
                                     featurestomap = [];
                                     markerstoMap = [];
+                                    window.location.reload();
                                 }
                                 else {
                                     document.getElementById('warning').style.display = "block";
