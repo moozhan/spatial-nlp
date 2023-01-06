@@ -489,8 +489,8 @@ async function analyzethetext() {
             }
         }
     };
-    // console.log(loc);
-    // console.log(sentences);
+    console.log(loc);
+    console.log(sentences);
 
 
     // --------------------- finding all the processes -----------------------//
@@ -636,7 +636,7 @@ async function analyzethetext() {
                                 }
                                 else {
                                     document.getElementById('warning').style.display = "block";
-                                    document.getElementById('warning').innerHTML = "Your request doesn't seem to have any spatial element or we are not advanced enough to be able to respond to it.";
+                                    document.getElementById('warning').innerHTML = "We couldn't find or process a spatial element in one or more parts of your request :/";
                                 }
 
                             }
