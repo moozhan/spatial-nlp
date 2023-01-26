@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" type="image/x-icon" href="assets/image/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js'></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <script src="https://unpkg.com/compromise"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>    
+    <script src="https://unpkg.com/leaflet.pm@latest/dist/leaflet.pm.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.pm@latest/dist/leaflet.pm.css" />
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5RT8DTHJRE"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-5RT8DTHJRE');
+    </script>
+   
+    <title>Testing NLP for Spatial Analysis</title>
+</head>
+<body>
+    <div class="topnav">
+        <a href="about.html">About</a>
+        <a href="index.html">Home</a>
+
+      </div>
+    <div>
+        <div class="containerAnalyze" style="margin-top: 5vh">
+            <form id="myForm" style="width: 100%;">
+                <label style="display: flex;" class="title" for="myName">Paste Your Text Here:</label>
+                <p style="text-align: left">The mapping data and names are limited to the Greater London area at the moment. If you add any text that is not related to the Greater London you will be disappointed.</p>
+                <textarea class="input" id="myName" name="inputText"></textarea>
+                <input class="btn-submit" id="postSubmit"  type="submit" value="Submit to Analyze">
+            </form>
+
+        </div>
+        <div class="containerAnalyze" style="margin-top: 1vh">
+            <input class="btn-submit" onClick="window.location.reload()" style=" display: none;" id="refresh"  type="button" value="Start Over">
+            <input class="btn-submit" onclick="visualize()" style="display: none; margin-left: 1%;" id="visualize"  type="button" value="Visualize all locations and entities">
+            <input class="btn-submit" onclick='download({ filename: "result.json" });' style="display: none; margin-left: 1%;" id="download"  type="button" value="download the result as JSON">
+
+        </div>
+        <div id="map-holder" style="display: none; margin-top: 2%;margin-left: 10%; ">
+            <div style="width: 90%; height: 400px;" id="map"></div>
+          </div>
+        <div class="containMid" id="resultContain" style="display: none; margin-bottom: 2%;">  
+            <p style="text-align: left; margin-left: 2%; font-weight: bold;">List of Spatial Terms:</p>
+            <div id="listHolderterms">
+
+            </div>
+            <p style="text-align: left; margin-left: 2%; font-weight: bold;">List of Unique Place Names That Can be Visualized:</p>
+            <div id="listHolderName">
+
+            </div>
+            <p style="text-align: left; margin-left: 2%; font-weight: bold;">List of Places That Can be Visualized in Order of Their Appearance:</p>
+            <div id="listHolder">
+
+            </div>
+            <p style="text-align: left; margin-left: 2%; font-weight: bold; display:none;" id="result" ></p>
+
+
+        </div>
+    </div>
+    <script src="assets/js/map.js"></script>
+    <script src="assets/js/analyzer.js"></script>
+
+</body>
+</html>

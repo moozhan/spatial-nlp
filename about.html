@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" type="image/x-icon" href="assets/image/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js'></script>
+    <script src="https://unpkg.com/compromise"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>    
+    <link rel="stylesheet" href="assets/css/style.css">
+   
+    <title>Testing NLP for Spatial Analysis</title>
+</head>
+<body>
+    <div class="topnav">
+        <a href="/">Home</a>
+      </div>
+    <div class="container">
+        <div class="left-block">
+            <div class="content-left">
+                <h1>Spatial Data and Natural Language Processing</h1>
+                <p class="main-text">We use words to incorporate spatiality into our everyday storytelling so effortlessly. Places have names, regardless of them being a city, region, neighborhood, or monument. We talk about that bus stop close to my house, the shop right on the corner, that lake close to Manchester, or those countries in Europe.</p>
+                <p class="main-text">But things have become a bit more complicated when analyzing and capturing spatial data. We talk about geographical features. They have codes that are differentiated based on their type, use, producers, etc. The current system for analyzing phenomena spatially works fine for fields such as urban and environmental planning but is not fit for storytelling.</p>
+                <p class="main-text">With the help of natural language processing and spatial analysis Javascript libraries, Compromise.js, and Turf.js, I have attempted to build a very basic prototype of a system that can capture and process spatial data within daily conversations. At the moment, what is displayed is very much like Google Maps services. However, its back-end uses spatial queries rather than names to retrieve data. So all spatial queries, such as features within a polygon, polygons intersecting, etc, can be added to it.  </p>
+                <p class="main-text">You can access the code in this <a href="https://github.com/moozhan/spatial-nlp">Github repository</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/script.js"></script>
+</body>
+</html>

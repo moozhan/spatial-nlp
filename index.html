@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" type="image/x-icon" href="assets/image/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <script src="https://unpkg.com/compromise"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>    
+    <script src="https://unpkg.com/leaflet.pm@latest/dist/leaflet.pm.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.pm@latest/dist/leaflet.pm.css" />
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5RT8DTHJRE"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-5RT8DTHJRE');
+    </script>
+   
+    <title>Testing NLP for Spatial Analysis</title>
+</head>
+<body>
+    <div class="topnav">
+        <a href="about.html">About</a>
+        <a href="analysis.html">Text Analyzer</a>
+
+      </div>
+    <div class="container">
+        <div class="left-block">
+            <div class="content-left">
+                <h2 class="title">Type Your Request Or Question:</h2>
+                <div class="content-slider">
+                    <div class="slider">
+                      <div class="mask">
+                        <ul>
+                          <li class="anim1">
+                            <div class="quote">Try sentences like: "Show Hackney", "Load Lambeth" , or "Where are the parks in westminster?". </div>
+                          </li>
+                          <li class="anim2">
+                            <div class="quote">Search for schools, parks, libraries, pubs, supermarkets or graveyards in London areas (e.g., Westminster, Lewisham, Lambeth, Hackney, etc.)</div>
+                          </li>
+                          <li class="anim3">
+                            <div class="quote">Search for [entities] near [entities] in [areas]. For example try "show me all the schools near parks in Hackney."</div>
+                          </li>
+                          <li class="anim4">
+                            <div class="quote">Clear the map by typing "Please clear the map"</div>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+        <div class="right-block">
+            <section>
+                <input type="text" id="sentence" name="sentence">
+                <button class="btn" id="speak"><i id="mic" class="fa-solid fa-microphone-slash"></i></button>
+                  <p class="warning" id="warning"></p>
+
+            </section>
+        </div>
+    </div>
+    <div class="info-box">
+      <div id="map-holder">
+        <div id="map"></div>
+      </div>
+      <div class="info-one" style="width: 100%; height: 100%; display: flex; align-items: center; align-content: center;">
+        <div style="flex: 33.33%; height: 100%; border-right: dashed 2px black;">
+          <img src="assets/image/1.png" alt="info-box-area" style="width: 90%; margin-top: 2em;">
+          <h3 style="text-align: left; padding-left: 1em;">Load Areas and Their Boundaries</h3>
+          <p class="text-explanation"> Use sentences like "Show [area]" or "Load [area]" to see the boundaries and code of areas in London</p>
+          <p class="text-explanation"> You can load areas in any scale (LA and MSOA) by name. The system uses an API that searches for areas and returns coordinates using names. At the moment, it only contains London area LAs and MSOAs. It also supports areas with complex names such as "Kensington and Chelsea". The system does not support & character in areas' names. Please replace & character with 'and'.</p>
+        </div>
+        <div style="flex: 33.33%; height: 100%; border-right: dashed 2px black;">
+          <img src="assets/image/2.png" alt="info-box-area" style="width: 90%; margin-top: 2em;">
+          <h3 style="text-align: left; padding-left: 1em;">Search for Facilities in Areas or Your Custom Area</h3>
+          <p class="text-explanation"> Use sentences like "Show parks in Crystal Palace and Anerley" or "Where are the schools in Lambeth?" or any other sentence containing [entity] in [area] to see facilities in your area of interest.
+          <p class="text-explanation"> The system currently supports parks, schools, pubs, libraries, stadiums, hospitals, supermarkets, cinemas, colleges, pitches, playgrounds, graveyards, etc, retrieved from Open Street Map API.</p>
+          <p class="text-explanation"> <span class="bold">To search for facilities in your custom area</span>, type "start the map"/"show the map", draw your boundary using the menu on the left, type your request. You need to tell the system where to look for entities. So type "in my area" or "in my boundary" or similar terms at the end of your request</p>
+
+          </div>
+        <div style="flex: 33.33%; height: 100%;">
+          <img src="assets/image/3.png" alt="info-box-area" style="width: 90%; margin-top: 2em;">
+
+          <h3 style="text-align: left; padding-left: 1em;">Find Entities Near Each Other in Areas or Your Custom Area</h3>
+          <p class="text-explanation"> Use sentences like "Show parks near schools in westminster" or "Where are the hospitals near playgrounds in Kensington and Chelsea" or any other sentence containing [entity] near [entity] in [area] to see facilities that are near each other.
+          <p class="text-explanation"> Being near currently is defined as 500-meter distance. The map will show the 500-meter buffers from the entity that is used for the system to calculate the distance between entities.</p>
+          <p class="text-explanation"> <span class="bold">To find entities near each other in your custom area</span>, type "start the map"/"show the map", draw your boundary using the menu on the left, type your request. You need to tell the system where to look for entities. So type "in my area" or "in my boundary" or similar terms at the end of your request</p>
+
+
+        </div>
+      </div>
+    </div>
+    <script src="assets/js/map.js"></script>
+    <script src="assets/js/urls.js"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
