@@ -287,7 +287,7 @@ function findPlaces(p) {
 // ---------------------- All the Spatial Analysis Functions -----------------------------//
 
 async function getPlaceGeo(x) {
-    const geoBoundary = `https://nlp-spatial-server.azurewebsites.net/api/v1/search/collections/static/items/areas?name=${x}`;
+    const geoBoundary = `https://london-nlp.herokuapp.com/api/v1/search/collections/static/items/areas?name=${x}`;
     let place = await getJson(geoBoundary);
     return place;
 }
@@ -313,7 +313,7 @@ async function showBoundaryArea(x) {
 
 
 async function getPlaceBoundary(x) {
-    const geoBoundary = `https://nlp-spatial-server.azurewebsites.net/api/v1/search/collections/static/items/areas?name=${x}`;
+    const geoBoundary = `https://london-nlp.herokuapp.com/api/v1/search/collections/static/items/areas?name=${x}`;
     let place = await getJson(geoBoundary);
     var polygon = L.geoJSON(place, { style: { color: '#dd8855', fillOpacity: 0.5 } });
     var bounds = polygon.getBounds();
